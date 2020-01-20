@@ -9,6 +9,32 @@ ST_amplicon_table = read.table("DB/epidome_ST_amplicon_frequences.txt",sep = "\t
 epi01_table_full = read.table("example_data/epi01_count_table.csv",sep = ";",header=TRUE,row.names=1)
 epi02_table_full = read.table("example_data/epi02_count_table.csv",sep = ";",header=TRUE,row.names=1)
 
+sample_names = colnames(epi01_table_full)[3:ncol(epi01_table_full)]
+patient_IDs = unlist(lapply(sample_names, function(x) strsplit(x,'_')[[1]][1]))
+patient_IDs[which(patient_IDs=="E")] = "Even mock"
+patient_IDs[which(patient_IDs=="S")] = "Staggered mock"
+patient_IDs[which(patient_IDs=="nk")] = "Negative control"
+sample_site = unlist(lapply(sample_names, function(x) strsplit(x,'_')[[1]][2]))
+sample_site[which(patient_IDs=="Even mock")] = "Even mock"
+sample_site[which(patient_IDs=="Staggered mock")] = "Staggered mock"
+sample_site[which(patient_IDs=="Negative control")] = "Negative control"
+
+
+metadata_table = data.frame("sample.ID"=sample_names,"patient.ID"=patient_IDs,"sample.site"=sample_site,row.names = sample_names)
+
+metadata_table$sample.type = "Clinical"
+metadata_table$sample.type[which(metadata_table$patient.ID %in% c("Staggered mock","Even mock"))] = "Mock community"
+metadata_table$sample.type[which(metadata_table$patient.ID %in% c("Negative control"))] = "Negative control"
+
+write.table(metadata_table,file = "example_data/sample_metadata.txt",sep = "\t")
+
+#writeLines(sample_names,"example_data/sample_names.txt")
+
+meta_test = read.table("example_data/sample_metadata.txt",sep = "\t")
+
+t2 = setup_epidome_object(epi01_table_full,epi02_table_full,metadata_table = metadata_table)
+
+
 epi_01_seq_names = epi01_table_full$Seq_number
 epi_02_seq_names = epi02_table_full$Seq_number
 
