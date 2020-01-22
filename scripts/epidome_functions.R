@@ -110,6 +110,8 @@ plot_PCA_epidome(t3_norm,"sample.site",c())
 
 
 p1_dist = dist(t(t3_norm$p1_table))
+
+
 p2_dist = dist(t(t3_norm$p2_table))
   
 
