@@ -1,13 +1,121 @@
 setwd("/Volumes/data/MPV/projects/git.repositories/epidome/")
 
-
-mlst_table = read.table("DB/epidome_mlst_table.txt", sep = "\t")
-
+### Load amplicon table for classification ###
 ST_amplicon_table = read.table("DB/epidome_ST_amplicon_frequences.txt",sep = "\t")
 
-
+### Load dada2 output for the two primers ###
 epi01_table_full = read.table("example_data/epi01_count_table.csv",sep = ";",header=TRUE,row.names=1)
 epi02_table_full = read.table("example_data/epi02_count_table.csv",sep = ";",header=TRUE,row.names=1)
+
+### Load metadata table
+metadata_table = read.table("example_data/sample_metadata.txt",header=TRUE,row.names=1)
+
+### Setup an object for easy handling of epidome data
+epidome_object = setup_epidome_object(epi01_table_full,epi02_table_full,metadata_table = metadata_table)
+
+### Check if number of sequences from each primer for each samples match up approximately ###
+compare_primer_output(epidome_object)
+
+### Look at some PCA plots ###
+plot_PCA_epidome(epidome_object,"patient.ID",c())
+plot_PCA_epidome(epidome_object,"sample.site",c())
+
+### Filter lowcount samples (removes any sample that has less than X sequences from one of the two primer sets, here 500) ###
+epidome_filtered_samples = filter_lowcount_samples_epidome(epidome_object,500,500)
+
+### Filter lowcount ASVs (removes any ASV that does not appear with more than X% abundance in any sample) ###
+epidome_filtered_ASVs = filter_lowcount_ASVs_epidome(epidome_object,percent_threshold = 1)
+
+
+### Combine ASVs from dada output (faster to  ###
+epidome_ASV_combined = combine_ASVs_epidome(epidome_object)
+
+### Normalize data to percent ###
+epidome_object_normalized = normalize_epidome_object(epidome_ASV_combined)
+
+### Classify based on the two primer sets and combine into a single data frame ###
+count_table = classify_epidome(epidome_filtered_samples,ST_amplicon_table)
+
+### Make a barplot of the classified data, set reorder = TRUE to sort samples based on Bray Curtis dissimilarity, set normalize = TRUE to plot percent ###
+p = make_barplot_epidome(count_table, reorder = FALSE, normalize = TRUE)
+p
+
+p = make_barplot_epidome(count_table, reorder = FALSE, normalize = FALSE)
+p
+
+
+
+
+
+
+
+
+
+
+
+
+test = dist_comparison(p1_dist,factor(t3_norm$metadata$sample.site))
+test = dist_comparison(p1_dist,factor(t3_norm$metadata$patient.ID))
+
+p <- plot_ly(type="box",data=test_df,x=~Groups,y=~dist)
+p
+
+test_vec = as.vector(t3_norm$metadata$sample.type)
+
+g1_vec = c()
+g2_vec = c()
+
+for (i in 1:length(test_vec)) {
+  g1_vec = c(g1_vec,rep(test_vec[i],(length(test_vec)-i)))
+  g2_vec = c(g2_vec,test_vec[(i+1):length(test_vec)])
+}
+g2_vec = g2_vec[1:length(g1_vec)]
+g1_vec[1:10]
+g2_vec[1:10]
+
+length(g1_vec)
+length(g2_vec)
+
+type_comb = paste0(g1_vec,' - ',g2_vec)
+
+p = plot_ly(type='box',x=type_comb,y=as.vector(p1_dist))
+
+p1_dist = dist(t(t3_norm$p1_table))
+
+
+p2_dist = dist(t(t3_norm$p2_table))
+
+
+
+
+
+
+
+color_variable = "patient.ID"
+
+
+
+
+d1_1 = cbind(epidome_object$p1_seqs,epidome_object$p1_table[,13])
+d1_2 = cbind(epidome_object$p2_seqs,epidome_object$p2_table[,13])
+d2_1 = cbind(t2$p1_seqs,t2$p1_table[,13])
+d2_2 = cbind(t2$p2_seqs,t2$p2_table[,13])
+
+
+plot_PCA_epidome(t3_norm,"patient.ID",c())
+plot_PCA_epidome(t3_norm,"sample.site",c())
+
+d_top10 = t3_norm$p1_table[1:10,]
+d_top10_melt = melt(d_top10)
+
+
+ggplot(data=d_top10_melt) + geom_bar(aes(x=X2,y=value,fill=as.character(X1)), stat="identity")
+
+
+
+
+
+
 
 sample_names = colnames(epi01_table_full)[3:ncol(epi01_table_full)]
 patient_IDs = unlist(lapply(sample_names, function(x) strsplit(x,'_')[[1]][1]))
@@ -26,7 +134,7 @@ metadata_table$sample.type = "Clinical"
 metadata_table$sample.type[which(metadata_table$patient.ID %in% c("Staggered mock","Even mock"))] = "Mock community"
 metadata_table$sample.type[which(metadata_table$patient.ID %in% c("Negative control"))] = "Negative control"
 
-write.table(metadata_table,file = "example_data/sample_metadata.txt",sep = "\t")
+#write.table(metadata_table,file = "example_data/sample_metadata.txt",sep = "\t")
 
 #writeLines(sample_names,"example_data/sample_names.txt")
 
@@ -75,11 +183,11 @@ epi_02_percent = apply(epi_02_pruned,2,function(x) x/sum(x)*100)
 
 
 pca = prcomp(rbind(epi_01_percent,epi_02_percent))
-                           
+
 ggplot(data=as.data.frame(pca$x), aes(x=PC1,y=PC2,color=m_subset$patient_ID)) + scale_color_manual(values = colorRamps::primary.colors(19)[c(1,2,3,4,14,6,7,8,9,12,11,10,13,5,15,16,17,18,19)]) + geom_point(size = 3) + theme(legend.position = "none") + xlab(labels[1]) + ylab(labels[2])
 ggplot(data=as.data.frame(pca$x), aes(x=PC3,y=PC4)) + geom_point(size = 1)
-                           
-                           
+
+
 
 
 sort(colSums(epi02_table))

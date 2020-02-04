@@ -1,8 +1,4 @@
 
-primer1_table = epi01_table_full
-primer2_table = epi02_table_full
-
-
 setup_epidome_object <- function(primer1_table,primer2_table,metadata_table) {
   primer1_counts = primer1_table[,3:ncol(primer1_table)]
   primer2_counts = primer2_table[,3:ncol(primer2_table)]
@@ -11,8 +7,10 @@ setup_epidome_object <- function(primer1_table,primer2_table,metadata_table) {
   samples_with_both_primers = primer1_all_sample_names[which(primer1_all_sample_names %in% primer2_all_sample_names)]
   samples_missing_primer1_data = primer2_all_sample_names[which(!primer2_all_sample_names %in% primer1_all_sample_names)]
   samples_missing_primer2_data = primer1_all_sample_names[which(!primer1_all_sample_names %in% primer2_all_sample_names)]
-  primer1_seqs = primer1_table$Seq_number
-  primer2_seqs = primer2_table$Seq_number
+  primer1_seqs = as.vector(primer1_table$Seq_number)
+  primer2_seqs = as.vector(primer2_table$Seq_number)
+  primer1_seqs[which(is.na(primer1_seqs))] = "seqUnclassified"
+  primer2_seqs[which(is.na(primer2_seqs))] = "seqUnclassified"
   primer1_counts = primer1_table[,which(colnames(primer1_table) %in% samples_with_both_primers)]
   primer2_counts = primer2_table[,which(colnames(primer2_table) %in% samples_with_both_primers)]
   if (!missing(metadata_table)) {
@@ -42,21 +40,55 @@ setup_epidome_object <- function(primer1_table,primer2_table,metadata_table) {
 }
 
 
-test = setup_epidome_object(epi01_table_full,epi02_table_full)
-
-epidome_object = setup_epidome_object(epi01_table_full,epi02_table_full,metadata_table = metadata_table)
-
 
 compare_primer_output <- function(epidome_object) {
   p1_counts = colSums(epidome_object$p1_table)
   p2_counts = colSums(epidome_object$p2_table)
   cor = cor.test(p1_counts,p2_counts)
-  ggplot(data.frame(p1_counts,p2_counts),aes(x=p1_counts,y=p2_counts)) + geom_point()
-  
+  p =ggplot(data.frame(p1_counts,p2_counts),aes(x=p1_counts,y=p2_counts)) + geom_point() + ggtitle(paste0("Pearson correlation coefficient: ",sprintf(cor$estimate, fmt = '%#.2f'),", p = ",sprintf(cor$p.value, fmt = '%#.3f')))
+  p
+  return(list('plot'=p,'cor_test'=cor))
 }
 
 
-filter_lowcount_epidome = function(epidome_object,p1_threshold,p2_threshold) {
+combine_ASVs_epidome = function(epidome_object) {
+  return_epidome_object = epidome_object
+  uniq_p1_seqs = unique(as.vector(epidome_object$p1_seqs))
+  uniq_p2_seqs = unique(as.vector(epidome_object$p2_seqs))
+  return_p1_table = matrix(nrow = 0, ncol = length(epidome_object$sample_names))
+  return_p2_table = matrix(nrow = 0, ncol = length(epidome_object$sample_names))
+  uniq_p1_seqs = uniq_p1_seqs[!uniq_p1_seqs=="seqUnclassified"]
+  uniq_p2_seqs = uniq_p2_seqs[!uniq_p2_seqs=="seqUnclassified"]
+  for (ASV in uniq_p1_seqs) {
+    sub_d = epidome_object$p1_table[which(epidome_object$p1_seqs==ASV),]
+    ASV_sums = colSums(sub_d)
+    return_p1_table = rbind(return_p1_table,ASV_sums)
+  }
+  p1_unclassified_d = epidome_object$p1_table[which(epidome_object$p1_seqs=="seqUnclassified"),]
+  return_p1_table = rbind(return_p1_table,p1_unclassified_d)
+  rownames(return_p1_table) = 1:nrow(return_p1_table)
+  return_p1_seqs = rep("seqUnclassified",nrow(return_p1_table))
+  return_p1_seqs[1:length(uniq_p1_seqs)] = uniq_p1_seqs
+  
+  for (ASV in uniq_p2_seqs) {
+    sub_d = epidome_object$p2_table[which(epidome_object$p2_seqs==ASV),]
+    ASV_sums = colSums(sub_d)
+    return_p2_table = rbind(return_p2_table,ASV_sums)
+  }
+  p2_unclassified_d = epidome_object$p2_table[which(epidome_object$p2_seqs=="seqUnclassified"),]
+  return_p2_table = rbind(return_p2_table,p2_unclassified_d)
+  rownames(return_p2_table) = 1:nrow(return_p2_table)
+  return_p2_seqs = rep("seqUnclassified",nrow(return_p2_table))
+  return_p2_seqs[1:length(uniq_p2_seqs)] = uniq_p2_seqs
+  return_epidome_object$p1_seqs = return_p1_seqs
+  return_epidome_object$p2_seqs = return_p2_seqs
+  return_epidome_object$p1_table = return_p1_table
+  return_epidome_object$p2_table = return_p2_table
+  return(return_epidome_object)
+}
+
+
+filter_lowcount_samples_epidome = function(epidome_object,p1_threshold,p2_threshold) {
   original_sample_names = epidome_object$sample_names
   include_index = which(colSums(epidome_object$p1_table) >= p1_threshold & colSums(epidome_object$p2_table) >= p2_threshold)
   epidome_object$p1_table = epidome_object$p1_table[,include_index]
@@ -68,8 +100,24 @@ filter_lowcount_epidome = function(epidome_object,p1_threshold,p2_threshold) {
   return(epidome_object)
 }
 
-t3 = filter_lowcount_epidome(epidome_object,500,500)
 
+filter_lowcount_ASVs_epidome = function(epidome_object,percent_threshold) {
+  return_epidome_object = epidome_object
+  epidome_object_norm = normalize_epidome_object(epidome_object)
+  p1_max = apply(epidome_object_norm$p1_table, 1, max)
+  p2_max = apply(epidome_object_norm$p2_table, 1, max)
+  p1_include_idx = which(p1_max>=percent_threshold)
+  p2_include_idx = which(p2_max>=percent_threshold)
+  print(paste0((length(epidome_object$p1_seqs)-length(p1_include_idx)), " ASVs removed from epi01 data"))
+  print(paste0(length(p1_include_idx), " ASVs remaining in epi01 data"))
+  print(paste0((length(epidome_object$p2_seqs)-length(p2_include_idx)), " ASVs removed from epi02 data"))
+  print(paste0(length(p2_include_idx), " ASVs remaining in epi02 data"))
+  return_epidome_object$p1_seqs = epidome_object$p1_seqs[p1_include_idx]
+  return_epidome_object$p2_seqs = epidome_object$p2_seqs[p2_include_idx]
+  return_epidome_object$p1_table = epidome_object$p1_table[p1_include_idx,]
+  return_epidome_object$p2_table = epidome_object$p2_table[p2_include_idx,]
+  return(return_epidome_object)
+}
 
 normalize_epidome_object = function(epidome_object) {
   epidome_object$p1_table = apply(epidome_object$p1_table,2,function(x) x/sum(x)*100)
@@ -77,7 +125,121 @@ normalize_epidome_object = function(epidome_object) {
   return(epidome_object)
 }
 
-t3_norm = normalize_epidome_object(t3)
+classify_epidome = function(epidome_object,ST_amplicon_table) {
+  epidome_object_norm = normalize_epidome_object(epidome_object)
+  p1_seqs = unlist(lapply(as.vector(epidome_object$p1_seqs),function(x) substr(x,4,nchar(x))))
+  p2_seqs = unlist(lapply(as.vector(epidome_object$p2_seqs),function(x) substr(x,4,nchar(x))))
+  n_samples = length(epidome_object$sample_names)
+  n_p1_seqs = length(p1_seqs)
+  count_table = matrix(nrow = 0, ncol = n_samples,dimnames = list('ST'=c(),'Samples'=epidome_object$sample_names))
+  match_type_table = matrix(nrow = n_p1_seqs, ncol = n_samples)
+  count_table_names = c()
+  unclassified_count_vec = rep(0,n_samples)
+  g1_unclassified_count_vec = rep(0,n_samples)
+  for (i in 1:n_p1_seqs) {
+    p1_seq = p1_seqs[i]
+    if (p1_seq != "Unclassified") {
+      p1_seq_ST_table = ST_amplicon_table[which(ST_amplicon_table$epi01_ASV==p1_seq),]
+      unique_p1_ASVs = unique(as.vector(p1_seq_ST_table$ST))
+      if (length(unique_p1_ASVs)==1) {
+        count_vec = as.numeric(as.vector(epidome_object$p1_table[i,]))
+        classification_group = as.vector(unique_p1_ASVs)[1]
+        if (classification_group %in% count_table_names) {
+          classification_idx = which(count_table_names == classification_group)
+          count_table[classification_idx,] = count_table[classification_idx,]+count_vec
+        } else {
+          count_table = rbind(count_table,count_vec)
+          count_table_names = c(count_table_names,classification_group)
+        }
+        match_type_vec = rep("Unique epi01 match",n_samples)
+        match_type_table[i,] = match_type_vec
+      } else {
+        p2_ASVs_matching_p1 = p1_seq_ST_table$epi02_ASV
+        count_vec = rep(0,n_samples)
+        for (j in 1:n_samples) {
+          p1_percent = epidome_object_norm$p1_table[i,j]
+          p1_count = epidome_object$p1_table[i,j]
+          if (p1_percent > 0.01) {
+            p2_seqs_present_within_difference_threshold_idx = which(epidome_object_norm$p2_table[,j]<(p1_percent+10) & epidome_object_norm$p2_table[,j]>(p1_percent-10))
+            p2_seqs_present_ASVs = p2_seqs[p2_seqs_present_within_difference_threshold_idx]
+            p2_seqs_present_ASVs_matching_p1 = p2_seqs_present_ASVs[which(p2_seqs_present_ASVs %in% p2_ASVs_matching_p1)]
+            p2_percent = epidome_object_norm$p2_table[which(p2_seqs %in% p2_seqs_present_ASVs_matching_p1),j]
+            p2_count = epidome_object$p2_table[which(p2_seqs %in% p2_seqs_present_ASVs_matching_p1),j]
+            if (length(p2_seqs_present_ASVs_matching_p1) == 0) {
+              match_type_table[i,j] = "epi01 match without epi02 match"
+              top_freq_idx = order(p1_seq_ST_table$freq,decreasing = T)[1]
+              classification_group = as.vector(p1_seq_ST_table$ST)[top_freq_idx]
+              if (classification_group %in% count_table_names) {
+                classification_idx = which(count_table_names == classification_group)
+                count_table[classification_idx,j] = count_table[classification_idx,j]+p1_count
+              } else {
+                count_vec = rep(0,n_samples)
+                count_vec[j] = p1_count
+                count_table = rbind(count_table,count_vec)
+                count_table_names = c(count_table_names,classification_group)
+              }
+              #unclassified_count_vec[j] = unclassified_count_vec[j]+p1_count
+            }
+            else if (length(p2_seqs_present_ASVs_matching_p1) == 1) {
+              classification_group = p2_seqs_present_ASVs_matching_p1[1]
+              if (classification_group %in% count_table_names) {
+                classification_idx = which(count_table_names == classification_group)
+                count_table[classification_idx,j] = count_table[classification_idx,j]+p1_count
+              } else {
+                count_vec = rep(0,n_samples)
+                count_vec[j] = p1_count
+                count_table = rbind(count_table,count_vec)
+                count_table_names = c(count_table_names,classification_group)
+              }
+              match_type_table[i,j] = "Unique epi01 epi02 combination"
+            } else {
+              unclassified_count_vec[j] = unclassified_count_vec[j]+p1_count
+              match_type_table[i,j] = c("Non unique epi01 epi02 combination")
+            }
+            
+          } else {
+            match_type_table[i,j] = "Low counts"
+            unclassified_count_vec[j] = unclassified_count_vec[j]+p1_count
+          }
+          
+        }
+      }
+    } else {
+      count_vec = as.numeric(as.vector(epidome_object$p1_table[i,]))
+      unclassified_count_vec = unclassified_count_vec+count_vec
+      g1_unclassified_count_vec = g1_unclassified_count_vec+count_vec
+      match_type_vec = rep("Unclassified epi01 match",n_samples)
+      match_type_table[i,] = match_type_vec
+    }
+    
+  }
+  count_table = rbind(count_table,unclassified_count_vec)
+  rownames(count_table) = c(count_table_names,"Unclassified")
+  count_df = as.data.frame(count_table)
+  return(count_df)
+}
+
+
+make_barplot_epidome = function(count_table, reorder = FALSE, normalize = TRUE) {
+  count_df_ordered = count_table[order(rowSums(count_table),decreasing = T),]
+  count_df_top12 = count_df_ordered[1:12,]
+  if (normalize) {
+    dd<-apply(count_df_top12, 2, function(x) x/sum(x)*100)
+    count_df_top12<-as.data.frame(dd)
+  }
+  count_df_top12$ST = rownames(count_df_top12)
+  melt_df = melt(count_df_top12)
+  colnames(melt_df) = c("ST","Sample","Count")
+  if (reorder) {
+    BC = vegdist(t(count_df))
+    fit = hclust(BC, method = "ward.D")
+    melt_df$Sample = factor(as.vector(melt_df$Sample), levels = fit$labels[fit$order])
+  }
+  p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = RColorBrewer::brewer.pal(12,"Paired")) + theme(axis.text.x = element_text(angle = 90,hjust = 0.95))
+  return(p)
+}
+
+
 
 setup_colors = function(factor_levels,colors) {
   group_count = length(factor_levels)
@@ -92,7 +254,6 @@ setup_colors = function(factor_levels,colors) {
   }
 }
 
-color_variable = "patient.ID"
 plot_PCA_epidome = function(epidome_object,color_variable,colors) {
   m = epidome_object$metadata
   color_variable_factor = m[,which(epidome_object$meta_variables==color_variable)]
@@ -103,16 +264,41 @@ plot_PCA_epidome = function(epidome_object,color_variable,colors) {
   ggplot(as.data.frame(pca$x),aes(x=PC1,y=PC2,color = color_variable_factor)) + labs(color = color_variable) + geom_point(size=1, alpha=1)+ stat_ellipse(level=0.75) + scale_colour_manual(values = color_vector)
 }
 
-plot_PCA_epidome(t3_norm,"patient.ID",c())
-plot_PCA_epidome(t3_norm,"sample.site",c())
 
-
-
-
-p1_dist = dist(t(t3_norm$p1_table))
-
-
-p2_dist = dist(t(t3_norm$p2_table))
-  
-
-
+dist_comparison = function(dist_object,group_factor) {
+  group_levels = levels(group_factor)
+  group_vector = as.vector(group_factor)
+  g1_vec = c()
+  g2_vec = c()
+  p_mat = matrix(nrow=length(group_levels),ncol=length(group_levels),dimnames = list(group_levels,group_levels))
+  median_IQR_mat = p_mat
+  for (i in 1:length(group_vector)) {
+    g1_vec = c(g1_vec,rep(group_vector[i],(length(group_vector)-i)))
+    g2_vec = c(g2_vec,group_vector[(i+1):length(group_vector)])
+  }
+  g2_vec = g2_vec[1:length(g1_vec)]
+  in_out_group_vec = rep("Between group",length(g1_vec))
+  in_out_group_vec[which(g1_vec==g2_vec)] = "Within group"
+  #group_factor = factor(paste0(g1_vec,'__',g2_vec),levels = paste0()
+  return_df = data.frame('Group.1'=g1_vec,'Group.2'=g2_vec,'Groups'=paste0(g1_vec,'__',g2_vec),'within_or_between_group'=in_out_group_vec,'dist'=as.vector(dist_object))
+  for (i in 1:length(group_levels)) {
+    dist_g1  = return_df$dist[which(return_df$Group.1==group_levels[i])]
+    for (j in 1:length(group_levels)) {
+      if (!i==j) {
+        dist_g2  = return_df$dist[which(return_df$Group.2==group_levels[i])]
+        p_value = NA
+        p_value = try(sprintf(wilcox.test(dist_g1,dist_g2)$p.value, fmt = '%#.5f'))
+        p_mat[i,j] = p_value
+        p_mat[j,i] = p_value
+      }
+      dist_g1_g2 = return_df$dist[which(return_df$Group.1==group_levels[i] & return_df$Group.2==group_levels[j])]
+      iqr = quantile(dist_g1_g2)
+      median_print = paste0('Median ',sprintf(iqr[3], fmt = '%#.2f'),', (IQR: ',sprintf(iqr[2], fmt = '%#.2f'),' - ',sprintf(iqr[4], fmt = '%#.2f'),')')
+      median_IQR_mat[i,j] = median_print
+      median_IQR_mat[j,i] = median_print
+    }
+  }
+  p <- plot_ly(type="box",data=return_df,x=~Groups,y=~dist, boxpoints = "all", pointpos = -1.5)
+  return_list = list('plot'=p,'dist.data'=return_df,'p.values'=as.data.frame(p_mat),'IQR.values'=as.data.frame(median_IQR_mat))
+  return(return_list)
+}
