@@ -1,3 +1,5 @@
+library(ggplot2)
+library(pls)
 
 setup_epidome_object <- function(primer1_table,primer2_table,metadata_table) {
   primer1_counts = primer1_table[,3:ncol(primer1_table)]
@@ -160,11 +162,14 @@ classify_epidome = function(epidome_object,ST_amplicon_table) {
           p1_percent = epidome_object_norm$p1_table[i,j]
           p1_count = epidome_object$p1_table[i,j]
           if (p1_percent > 0.01) {
-            p2_seqs_present_within_difference_threshold_idx = which(epidome_object_norm$p2_table[,j]<(p1_percent+10) & epidome_object_norm$p2_table[,j]>(p1_percent-10))
+            #p2_seqs_present_within_difference_threshold_idx = which(epidome_object_norm$p2_table[,j]<(p1_percent+10) & epidome_object_norm$p2_table[,j]>(p1_percent-10))
+            p2_seqs_present_within_difference_threshold_idx = which(epidome_object_norm$p2_table[,j]>(p1_percent-10) & epidome_object_norm$p2_table[,j]>0.01)
             p2_seqs_present_ASVs = p2_seqs[p2_seqs_present_within_difference_threshold_idx]
             p2_seqs_present_ASVs_matching_p1 = p2_seqs_present_ASVs[which(p2_seqs_present_ASVs %in% p2_ASVs_matching_p1)]
             p2_percent = epidome_object_norm$p2_table[which(p2_seqs %in% p2_seqs_present_ASVs_matching_p1),j]
             p2_count = epidome_object$p2_table[which(p2_seqs %in% p2_seqs_present_ASVs_matching_p1),j]
+            print(p2_seqs_present_ASVs_matching_p1)
+            print(p1_count)
             if (length(p2_seqs_present_ASVs_matching_p1) == 0) {
               match_type_table[i,j] = "epi01 match without epi02 match"
               top_freq_idx = order(p1_seq_ST_table$freq,decreasing = T)[1]
@@ -181,7 +186,9 @@ classify_epidome = function(epidome_object,ST_amplicon_table) {
               #unclassified_count_vec[j] = unclassified_count_vec[j]+p1_count
             }
             else if (length(p2_seqs_present_ASVs_matching_p1) == 1) {
-              classification_group = p2_seqs_present_ASVs_matching_p1[1]
+              print(p1_seq_ST_table)
+              classification_group = as.vector(p1_seq_ST_table$ST[which(p1_seq_ST_table$epi02_ASV==p2_seqs_present_ASVs_matching_p1[1])])[1]
+              print(classification_group)
               if (classification_group %in% count_table_names) {
                 classification_idx = which(count_table_names == classification_group)
                 count_table[classification_idx,j] = count_table[classification_idx,j]+p1_count
@@ -222,11 +229,11 @@ classify_epidome = function(epidome_object,ST_amplicon_table) {
 
 make_barplot_epidome = function(count_table, reorder = FALSE, normalize = TRUE) {
   count_df_ordered = count_table[order(rowSums(count_table),decreasing = T),]
-  count_df_top12 = count_df_ordered[1:12,]
   if (normalize) {
-    dd<-apply(count_df_top12, 2, function(x) x/sum(x)*100)
-    count_df_top12<-as.data.frame(dd)
+    dd<-apply(count_df_ordered, 2, function(x) x/sum(x)*100)
+    count_df_ordered<-as.data.frame(dd)
   }
+  count_df_top12 = count_df_ordered[1:12,]
   count_df_top12$ST = rownames(count_df_top12)
   melt_df = melt(count_df_top12)
   colnames(melt_df) = c("ST","Sample","Count")
@@ -247,23 +254,77 @@ setup_colors = function(factor_levels,colors) {
     if (group_count<=9) {
       colors = RColorBrewer::brewer.pal(length(factor_levels),"Set1")
     } else if (group_count<=12) {
-      colors = RColorBrewer::brewer.pal(12,name="Set3")[1:group_count]
+      colors = RColorBrewer::brewer.pal(12,name="Paired")[1:group_count]
     } else {
       colors  = grDevices::rainbow(group_count)
     }
   }
+  return(colors)
 }
 
-plot_PCA_epidome = function(epidome_object,color_variable,colors) {
+plot_PCA_epidome = function(epidome_object,color_variable,colors,include_ellipse = TRUE) {
   m = epidome_object$metadata
   color_variable_factor = m[,which(epidome_object$meta_variables==color_variable)]
   data_combined = rbind(epidome_object$p1_table,epidome_object$p2_table)
   pca = prcomp(t(data_combined))
   plot_df = data.frame(pca$x)
   color_vector = setup_colors(levels(color_variable_factor),colors)
-  ggplot(as.data.frame(pca$x),aes(x=PC1,y=PC2,color = color_variable_factor)) + labs(color = color_variable) + geom_point(size=1, alpha=1)+ stat_ellipse(level=0.75) + scale_colour_manual(values = color_vector)
+  labels = c(paste0("PC1 [",sprintf("%.1f",explvar(pca)[1]),"%]"),paste0("PC2, [",sprintf("%.1f",explvar(pca)[2]),"%]"))
+  if (include_ellipse) {
+    p = ggplot(as.data.frame(pca$x),aes(x=PC1,y=PC2,color = color_variable_factor)) + labs(color = color_variable) + geom_point(size=1.5, alpha=1)+ stat_ellipse(level=0.75) + scale_colour_manual(values = color_vector) + xlab(labels[1]) + ylab(labels[2]) + theme_bw()
+  } else {
+    p = ggplot(as.data.frame(pca$x),aes(x=PC1,y=PC2,color = color_variable_factor)) + labs(color = color_variable) + geom_point(size=1.5, alpha=1) + scale_colour_manual(values = color_vector) + xlab(labels[1]) + ylab(labels[2]) + theme_bw()
+  }
+  return(p)
 }
 
+prune_samples_epidome = function(epidome_object,sample_names, keep_factor_levels = FALSE) {
+  return_epidome_object = epidome_object
+  include_idx = which(epidome_object$sample_names %in% sample_names)
+  return_epidome_object$p1_table = epidome_object$p1_table[,include_idx]
+  return_epidome_object$p2_table = epidome_object$p2_table[,include_idx]
+  new_m = epidome_object$metadata[include_idx,]
+  if (!keep_factor_levels) {
+    for (i in 1:ncol(new_m)) {
+      col_factor = new_m[,i]
+      if (class(col_factor) == "factor") {
+        lvls = levels(col_factor)
+        new_lvls = lvls[which(lvls %in% as.vector(col_factor))]
+        new_factor = factor(as.vector(col_factor), levels = new_lvls)
+        new_m[,i] = new_factor
+        print(new_lvls)
+      }
+    }
+  }
+  return_epidome_object$metadata = new_m
+  return_epidome_object$sample_names = epidome_object$sample_names[include_idx]
+  return(return_epidome_object)
+}
+
+prune_by_variable_epidome = function(epidome_object,variable_name,variable_values, keep_factor_levels = FALSE) {
+  return_epidome_object = epidome_object
+  m = epidome_object$metadata
+  variable_factor = m[,which(epidome_object$meta_variables==variable_name)]
+  include_idx = which(variable_factor %in% variable_values)
+  return_epidome_object$p1_table = epidome_object$p1_table[,include_idx]
+  return_epidome_object$p2_table = epidome_object$p2_table[,include_idx]
+  new_m = epidome_object$metadata[include_idx,]
+  if (!keep_factor_levels) {
+    for (i in 1:ncol(new_m)) {
+      col_factor = new_m[,i]
+      if (class(col_factor) == "factor") {
+        lvls = levels(col_factor)
+        new_lvls = lvls[which(lvls %in% as.vector(col_factor))]
+        new_factor = factor(as.vector(col_factor), levels = new_lvls)
+        new_m[,i] = new_factor
+        print(new_lvls)
+      }
+    }
+  }
+  return_epidome_object$metadata = new_m
+  return_epidome_object$sample_names = epidome_object$sample_names[include_idx]
+  return(return_epidome_object)
+}
 
 dist_comparison = function(dist_object,group_factor) {
   group_levels = levels(group_factor)
