@@ -227,26 +227,48 @@ classify_epidome = function(epidome_object,ST_amplicon_table) {
 }
 
 
+# make_barplot_epidome = function(count_table, reorder = FALSE, normalize = TRUE) {
+#   count_df_ordered = count_table[order(rowSums(count_table),decreasing = T),]
+#   if (normalize) {
+#     dd<-apply(count_df_ordered, 2, function(x) x/sum(x)*100)
+#     count_df_ordered<-as.data.frame(dd)
+#   }
+#   count_df_top12 = count_df_ordered[1:12,]
+#   count_df_top12$ST = rownames(count_df_top12)
+#   melt_df = melt(count_df_top12)
+#   colnames(melt_df) = c("ST","Sample","Count")
+#   if (reorder) {
+#     BC = vegdist(t(count_df))
+#     fit = hclust(BC, method = "ward.D")
+#     melt_df$Sample = factor(as.vector(melt_df$Sample), levels = fit$labels[fit$order])
+#   }
+#   p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = RColorBrewer::brewer.pal(12,"Paired")) + theme(axis.text.x = element_text(angle = 90,hjust = 0.95))
+#   return(p)
+# }
+
 make_barplot_epidome = function(count_table, reorder = FALSE, normalize = TRUE) {
   count_df_ordered = count_table[order(rowSums(count_table),decreasing = T),]
   if (normalize) {
     dd<-apply(count_df_ordered, 2, function(x) x/sum(x)*100)
     count_df_ordered<-as.data.frame(dd)
   }
-  count_df_top12 = count_df_ordered[1:12,]
+  count_df_top12 = rbind(count_df_ordered[1:11,],colSums(count_df_ordered[-c(1:11),]))
+  rownames(count_df_top12)[nrow(count_df_top12)] = "Other"
   count_df_top12$ST = rownames(count_df_top12)
   melt_df = melt(count_df_top12)
   colnames(melt_df) = c("ST","Sample","Count")
+  non_ST_levels = c("-","Other","Unclassified")
+  ST_levels = as.vector(count_df_top12$ST)[which(!count_df_top12$ST %in% non_ST_levels)]
+  ST_levels_ordered = c(sort(as.numeric(ST_levels)),non_ST_levels)
   if (reorder) {
     BC = vegdist(t(count_df))
     fit = hclust(BC, method = "ward.D")
     melt_df$Sample = factor(as.vector(melt_df$Sample), levels = fit$labels[fit$order])
   }
+  melt_df$ST = factor(as.vector(melt_df$ST),levels = ST_levels_ordered)
   p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = RColorBrewer::brewer.pal(12,"Paired")) + theme(axis.text.x = element_text(angle = 90,hjust = 0.95))
   return(p)
 }
-
-
 
 setup_colors = function(factor_levels,colors) {
   group_count = length(factor_levels)
@@ -262,7 +284,7 @@ setup_colors = function(factor_levels,colors) {
   return(colors)
 }
 
-plot_PCA_epidome = function(epidome_object,color_variable,colors,include_ellipse = TRUE) {
+plot_PCA_epidome = function(epidome_object,color_variable,colors,plot_ellipse = TRUE) {
   m = epidome_object$metadata
   color_variable_factor = m[,which(epidome_object$meta_variables==color_variable)]
   data_combined = rbind(epidome_object$p1_table,epidome_object$p2_table)
@@ -270,7 +292,7 @@ plot_PCA_epidome = function(epidome_object,color_variable,colors,include_ellipse
   plot_df = data.frame(pca$x)
   color_vector = setup_colors(levels(color_variable_factor),colors)
   labels = c(paste0("PC1 [",sprintf("%.1f",explvar(pca)[1]),"%]"),paste0("PC2, [",sprintf("%.1f",explvar(pca)[2]),"%]"))
-  if (include_ellipse) {
+  if (plot_ellipse) {
     p = ggplot(as.data.frame(pca$x),aes(x=PC1,y=PC2,color = color_variable_factor)) + labs(color = color_variable) + geom_point(size=1.5, alpha=1)+ stat_ellipse(level=0.75) + scale_colour_manual(values = color_vector) + xlab(labels[1]) + ylab(labels[2]) + theme_bw()
   } else {
     p = ggplot(as.data.frame(pca$x),aes(x=PC1,y=PC2,color = color_variable_factor)) + labs(color = color_variable) + geom_point(size=1.5, alpha=1) + scale_colour_manual(values = color_vector) + xlab(labels[1]) + ylab(labels[2]) + theme_bw()
@@ -292,7 +314,6 @@ prune_samples_epidome = function(epidome_object,sample_names, keep_factor_levels
         new_lvls = lvls[which(lvls %in% as.vector(col_factor))]
         new_factor = factor(as.vector(col_factor), levels = new_lvls)
         new_m[,i] = new_factor
-        print(new_lvls)
       }
     }
   }
@@ -317,7 +338,6 @@ prune_by_variable_epidome = function(epidome_object,variable_name,variable_value
         new_lvls = lvls[which(lvls %in% as.vector(col_factor))]
         new_factor = factor(as.vector(col_factor), levels = new_lvls)
         new_m[,i] = new_factor
-        print(new_lvls)
       }
     }
   }

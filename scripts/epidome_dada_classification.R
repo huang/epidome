@@ -1,4 +1,4 @@
-source("https://raw.githubusercontent.com/ssi-dk/epidome/master/scripts/epidome_functions.R?token=AHCBOOEM4Y4DAYH6JIZJBMC6IKRWQ")
+source("https://raw.githubusercontent.com/ssi-dk/epidome/master/scripts/epidome_functions.R?token=AHCBOOG2CAJ574PBGRRLN726IKSPK")
 setwd("/Volumes/data/MPV/projects/git.repositories/epidome/")
 
 ### Load amplicon table for classification ###
@@ -19,25 +19,53 @@ epidome_object = setup_epidome_object(epi01_table_full,epi02_table_full,metadata
 ### Check if number of sequences from each primer for each samples match up approximately ###
 compare_primer_output(epidome_object)
 
-### Look at some PCA plots ###
-plot_PCA_epidome(epidome_object,"patient.ID",c())
-plot_PCA_epidome(epidome_object,"sample.site",c())
+
+
+#### Data manipulation of various sorts ####
+
+### Combine ASVs from dada output ###
+epidome_ASV_combined = combine_ASVs_epidome(epidome_object)
 
 ### Filter lowcount samples (removes any sample that has less than X sequences from one of the two primer sets, here 500) ###
 epidome_filtered_samples = filter_lowcount_samples_epidome(epidome_object,500,500)
 
-
-
-
 ### Filter lowcount ASVs (removes any ASV that does not appear with more than X% abundance in any sample) ###
 epidome_filtered_ASVs = filter_lowcount_ASVs_epidome(epidome_object,percent_threshold = 1)
 
-
-### Combine ASVs from dada output (faster to  ###
-epidome_ASV_combined = combine_ASVs_epidome(epidome_object)
-
 ### Normalize data to percent ###
 epidome_object_normalized = normalize_epidome_object(epidome_filtered_samples)
+
+### Data stratification based on metadata variables
+epidome_object_clinical = prune_by_variable_epidome(epidome_object,"sample.type",c("Clinical"))
+epidome_object_mock = prune_by_variable_epidome(epidome_object,"sample.type",c("Mock community"))
+
+
+
+#### Plots and figures ###
+
+### Setup a data frame with sequence classification based on the two primer outputs. Combine ASVs first ###
+epidome_ASV_combined = combine_ASVs_epidome(epidome_object)
+count_table = classify_epidome(epidome_ASV_combined,ST_amplicon_table)
+### Make barplot based on classification. Set reorder=TRUE to order samples based on Bray Curtis dissimilarity and/or set normalize=FALSE to not normalize to percent ###
+make_barplot_epidome(count_table,reorder=FALSE,normalize=TRUE)
+
+### make PCA plots. Color according to variable in metadata and (optional) indicate colors to use. Set plot_ellipse=FALSE to not plot ellipse ###
+epidome_object_clinical_norm = normalize_epidome_object(epidome_object_clinical)
+PCA_patient_colored = plot_PCA_epidome(epidome_object_clinical_norm,color_variable = "patient.ID",colors = c(),plot_ellipse = FALSE)
+PCA_patient_colored
+PCA_sample_site_colored = plot_PCA_epidome(epidome_object_clinical_norm,color_variable = "sample.site",colors = c("Red","Blue"),plot_ellipse = TRUE)
+PCA_sample_site_colored
+
+
+
+
+
+
+
+
+p = make_barplot_epidome(count_table, reorder = FALSE, normalize = TRUE)
+p
+
 
 p = plot_PCA_epidome(epidome_object_normalized,"patient.ID",c(),include_ellipse = FALSE)
 p
@@ -50,7 +78,7 @@ count_table = classify_epidome(epidome_filtered_samples,ST_amplicon_table)
 
 ### Make a barplot of the classified data, set reorder = TRUE to sort samples based on Bray Curtis dissimilarity, set normalize = TRUE to plot percent ###
 p = make_barplot_epidome(count_table, reorder = FALSE, normalize = TRUE)
-
+p
 
 p = make_barplot_epidome(count_table, reorder = FALSE, normalize = FALSE)
 p
@@ -61,21 +89,21 @@ epidome_object_clinical = prune_by_variable_epidome(epidome_object,"sample.type"
 epidome_object_clinical_norm = normalize_epidome_object(epidome_object_clinical)
 
 
-p = plot_PCA_epidome(epidome_object_clinical_norm,"patient.ID",c(),include_ellipse = FALSE)
+pca_patient = plot_PCA_epidome(epidome_object_clinical_norm,"patient.ID",c(),include_ellipse = FALSE)
 p
 
-p = plot_PCA_epidome(epidome_object_clinical_norm,"sample.site",c(),include_ellipse = TRUE)
+pca_samplesite = plot_PCA_epidome(epidome_object_clinical_norm,"sample.site",c(),include_ellipse = TRUE)
 p
 
 
 count_table_clinical = classify_epidome(epidome_object_clinical,ST_amplicon_table)
-p = make_barplot_epidome(count_table_clinical, reorder = FALSE, normalize = TRUE)
+p_clinical = make_barplot_epidome(count_table_clinical, reorder = FALSE, normalize = TRUE)
 p
 
 
 epidome_object_mock = prune_by_variable_epidome(epidome_ASV_combined,"sample.type",c("Mock community"))
 count_table_mock = classify_epidome(epidome_object_mock,ST_amplicon_table)
-p = make_barplot_epidome(count_table_mock, reorder = FALSE, normalize = TRUE)
+p_mock = make_barplot_epidome(count_table_mock, reorder = FALSE, normalize = TRUE)
 p
 
 
