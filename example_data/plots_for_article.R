@@ -20,3 +20,16 @@ epidome_object = setup_epidome_object(epi01_table_full,epi02_table_full,metadata
 compare_primer_output(epidome_object)
 
 
+### Filter lowcount samples (removes any sample that has less than X sequences from one of the two primer sets, here 500) ###
+epidome_filtered_samples = filter_lowcount_samples_epidome(epidome_object,500,500)
+
+### Combine ASVs from dada output ###
+epidome_ASV_combined = combine_ASVs_epidome(epidome_filtered_samples)
+
+epidome_object_mock = prune_by_variable_epidome(epidome_ASV_combined,"sample.type",c("Mock community"))
+epidome_object_clinical = prune_by_variable_epidome(epidome_ASV_combined,"sample.type",c("Clinical"))
+
+
+pt_site_tbl = table(epidome_object_clinical$metada$patient.sample.site)
+
+include_values = names(pt_site_tbl)[which(pt_site_tbl==2)]
