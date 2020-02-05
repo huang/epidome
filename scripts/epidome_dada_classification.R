@@ -7,6 +7,10 @@ ST_amplicon_table = read.table("DB/epidome_ST_amplicon_frequencies.txt",sep = "\
 ### Load dada2 output for the two primers ###
 epi01_table_full = read.table("example_data/epi01_count_table.csv",sep = ";",header=TRUE,row.names=1)
 epi02_table_full = read.table("example_data/epi02_count_table.csv",sep = ";",header=TRUE,row.names=1)
+epi01_table_full = read.table("example_data/epi01_count_table_edit.csv",sep = ";",header=TRUE,row.names=1)
+epi02_table_full = read.table("example_data/epi02_count_table_edit.csv",sep = ";",header=TRUE,row.names=1)
+epi01_table_full = read.table("example_data/epi01_count_table_renamed.csv",sep = ";",header=TRUE,row.names=1)
+epi02_table_full = read.table("example_data/epi02_count_table_renamed.csv",sep = ";",header=TRUE,row.names=1)
 
 ### Load metadata table
 metadata_table = read.table("example_data/sample_metadata.txt",header=TRUE,row.names=1)
@@ -48,6 +52,22 @@ epidome_ASV_combined = combine_ASVs_epidome(epidome_object)
 count_table = classify_epidome(epidome_ASV_combined,ST_amplicon_table)
 ### Make barplot based on classification. Set reorder=TRUE to order samples based on Bray Curtis dissimilarity and/or set normalize=FALSE to not normalize to percent ###
 make_barplot_epidome(count_table,reorder=FALSE,normalize=TRUE)
+
+### make barplot of mock samples only 
+epidome_object_mock = prune_by_variable_epidome(epidome_ASV_combined,"sample.type",c("Mock community"))
+count_table_mock = classify_epidome(epidome_object_mock,ST_amplicon_table)
+count_table_mock = classify_epidome_2(epidome_object_mock,ST_amplicon_table)
+make_barplot_epidome(count_table_mock,reorder=FALSE,normalize=TRUE)
+
+
+### make barplot of "clinical" samples only 
+epidome_object_clinical = prune_by_variable_epidome(epidome_ASV_combined,"sample.type",c("Clinical"))
+count_table_clinical = classify_epidome_2(epidome_object_clinical,ST_amplicon_table)
+make_barplot_epidome(count_table_clinical,reorder=FALSE,normalize=TRUE)
+count_table_clinical = classify_epidome(epidome_object_clinical,ST_amplicon_table)
+make_barplot_epidome(count_table_clinical,reorder=FALSE,normalize=TRUE)
+
+
 
 ### make PCA plots. Color according to variable in metadata and (optional) indicate colors to use. Set plot_ellipse=FALSE to not plot ellipse ###
 epidome_object_clinical_norm = normalize_epidome_object(epidome_object_clinical)
