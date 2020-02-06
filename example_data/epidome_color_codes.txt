@@ -1,0 +1,18 @@
+hex code	ST
+#A6CEE3	2
+#B2DF8A	5
+#ffff33	7
+#FB9A99	35
+#bdbab7	59
+#CAB2D6	73
+#E31A1C	100
+#8d5bc2	130
+#5dd9c4	190
+#FDBF6F	215
+#1F78B4	218
+#33A02C	297
+#f781bf	691
+#bf5b17	Unclassified
+Grey	Other
+#f5ed5d	14
+#e8b099	87

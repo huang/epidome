@@ -286,8 +286,11 @@ classify_epidome_2 = function(epidome_object,ST_amplicon_table) {
               #unclassified_count_vec[j] = unclassified_count_vec[j]+p1_count
             }
             else if (length(p2_seqs_present_ASVs_matching_p1) == 1) {
-              classification_group = as.vector(p1_seq_ST_table$ST[which(p1_seq_ST_table$epi02_ASV==p2_seqs_present_ASVs_matching_p1[1])])[1]
+              p1_p2_seq_ST_table = p1_seq_ST_table[which(p1_seq_ST_table$epi02_ASV==p2_seqs_present_ASVs_matching_p1[1]),]
+              ST_order = order(p1_p2_seq_ST_table$freq,decreasing = T)
+              classification_group = as.vector(p1_p2_seq_ST_table$ST)[ST_order[1]]
               print(paste0('eyey ',classification_group))
+              print(p2_seqs_present_ASVs_matching_p1)
               if (classification_group %in% count_table_names) {
                 classification_idx = which(count_table_names == classification_group)
                 count_table[classification_idx,j] = count_table[classification_idx,j]+p1_count
