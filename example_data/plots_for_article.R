@@ -34,11 +34,11 @@ include_values = names(pt_site_tbl)[which(pt_site_tbl==2)]
 epidome_object_clinical_pruned = prune_by_variable_epidome(epidome_object_clinical,"patient.sample.site",include_values)
 epidome_clinical_pruned_norm = normalize_epidome_object(epidome_object_clinical_pruned)
 
-sample.site = epidome_clinical_pruned_norm$metadata$sample.site
+sample_site = epidome_clinical_pruned_norm$metadata$sample.site
 pca_pt = plot_PCA_epidome(epidome_clinical_pruned_norm,"patient.ID",RColorBrewer::brewer.pal(12,"Paired")[c(1:10,12)],plot_ellipse = F)
-pca_pt = pca_pt + geom_point(size=2,aes(shape=sample.site)) + scale_shape_manual(values=c(1,4))
+pca_pt = pca_pt + geom_point(size=2,aes(shape=sample_site)) + scale_shape_manual(values=c(1,3))
 pca_pt
-
+pca_pt + geom_point(size=2)
 pca_site = plot_PCA_epidome(epidome_clinical_pruned_norm,"sample.site",c())
 pca_site = pca_site + geom_point(size=2)
 

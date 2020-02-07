@@ -127,7 +127,7 @@ normalize_epidome_object = function(epidome_object) {
   return(epidome_object)
 }
 
-classify_epidome = function(epidome_object,ST_amplicon_table) {
+classify_epidome_2 = function(epidome_object,ST_amplicon_table) {
   epidome_object_norm = normalize_epidome_object(epidome_object)
   p1_seqs = unlist(lapply(as.vector(epidome_object$p1_seqs),function(x) substr(x,4,nchar(x))))
   p2_seqs = unlist(lapply(as.vector(epidome_object$p2_seqs),function(x) substr(x,4,nchar(x))))
@@ -168,8 +168,6 @@ classify_epidome = function(epidome_object,ST_amplicon_table) {
             p2_seqs_present_ASVs_matching_p1 = p2_seqs_present_ASVs[which(p2_seqs_present_ASVs %in% p2_ASVs_matching_p1)]
             p2_percent = epidome_object_norm$p2_table[which(p2_seqs %in% p2_seqs_present_ASVs_matching_p1),j]
             p2_count = epidome_object$p2_table[which(p2_seqs %in% p2_seqs_present_ASVs_matching_p1),j]
-            print(p2_seqs_present_ASVs_matching_p1)
-            print(p1_count)
             if (length(p2_seqs_present_ASVs_matching_p1) == 0) {
               match_type_table[i,j] = "epi01 match without epi02 match"
               top_freq_idx = order(p1_seq_ST_table$freq,decreasing = T)[1]
@@ -186,9 +184,7 @@ classify_epidome = function(epidome_object,ST_amplicon_table) {
               #unclassified_count_vec[j] = unclassified_count_vec[j]+p1_count
             }
             else if (length(p2_seqs_present_ASVs_matching_p1) == 1) {
-              print(p1_seq_ST_table)
               classification_group = as.vector(p1_seq_ST_table$ST[which(p1_seq_ST_table$epi02_ASV==p2_seqs_present_ASVs_matching_p1[1])])[1]
-              print(classification_group)
               if (classification_group %in% count_table_names) {
                 classification_idx = which(count_table_names == classification_group)
                 count_table[classification_idx,j] = count_table[classification_idx,j]+p1_count
@@ -227,7 +223,7 @@ classify_epidome = function(epidome_object,ST_amplicon_table) {
 }
 
 
-classify_epidome_2 = function(epidome_object,ST_amplicon_table) {
+classify_epidome = function(epidome_object,ST_amplicon_table) {
   epidome_object_norm = normalize_epidome_object(epidome_object)
   p1_seqs = unlist(lapply(as.vector(epidome_object$p1_seqs),function(x) substr(x,4,nchar(x))))
   p2_seqs = unlist(lapply(as.vector(epidome_object$p2_seqs),function(x) substr(x,4,nchar(x))))
@@ -272,8 +268,6 @@ classify_epidome_2 = function(epidome_object,ST_amplicon_table) {
               match_type_table[i,j] = "epi01 match without epi02 match"
               ST_order = order(p1_seq_ST_table$freq,decreasing = T)
               classification_group = as.vector(p1_seq_ST_table$ST)[ST_order[1]]
-              #print(p1_table)
-              #print(top_freq_idx)
               if (classification_group %in% count_table_names) {
                 classification_idx = which(count_table_names == classification_group)
                 count_table[classification_idx,j] = count_table[classification_idx,j]+p1_count
@@ -289,8 +283,6 @@ classify_epidome_2 = function(epidome_object,ST_amplicon_table) {
               p1_p2_seq_ST_table = p1_seq_ST_table[which(p1_seq_ST_table$epi02_ASV==p2_seqs_present_ASVs_matching_p1[1]),]
               ST_order = order(p1_p2_seq_ST_table$freq,decreasing = T)
               classification_group = as.vector(p1_p2_seq_ST_table$ST)[ST_order[1]]
-              print(paste0('eyey ',classification_group))
-              print(p2_seqs_present_ASVs_matching_p1)
               if (classification_group %in% count_table_names) {
                 classification_idx = which(count_table_names == classification_group)
                 count_table[classification_idx,j] = count_table[classification_idx,j]+p1_count
@@ -305,10 +297,6 @@ classify_epidome_2 = function(epidome_object,ST_amplicon_table) {
               p1_p2_seq_ST_table = p1_seq_ST_table[which(p1_seq_ST_table$epi02_ASV %in% p2_seqs_present_ASVs_matching_p1),]
               ST_order = order(p1_p2_seq_ST_table$freq,decreasing = T)
               classification_group = as.vector(p1_p2_seq_ST_table$ST)[ST_order[1]]
-              #print(p1_p2_seq_ST_table)
-              #print(ST_order)
-              #print(p1_p2_seq_ST_table[ST_order,])
-              #print(classification_group)
               if (classification_group %in% count_table_names) {
                 classification_idx = which(count_table_names == classification_group)
                 count_table[classification_idx,j] = count_table[classification_idx,j]+p1_count
@@ -320,13 +308,6 @@ classify_epidome_2 = function(epidome_object,ST_amplicon_table) {
               }
               #unclassified_count_vec[j] = unclassified_count_vec[j]+p1_count
               match_type_table[i,j] = c("Non unique epi01 epi02 combination")
-            }
-            if (classification_group==488) {
-              print('HEY')
-              print(p1_p2_seq_ST_table)
-              print(p1_seq)
-              print(p2_seqs_present_ASVs_matching_p1)
-              print(p1_p2_seq_ST_table[ST_order,])
             }
             
           } else {
@@ -351,25 +332,6 @@ classify_epidome_2 = function(epidome_object,ST_amplicon_table) {
   return(count_df)
 }
 
-
-# make_barplot_epidome = function(count_table, reorder = FALSE, normalize = TRUE) {
-#   count_df_ordered = count_table[order(rowSums(count_table),decreasing = T),]
-#   if (normalize) {
-#     dd<-apply(count_df_ordered, 2, function(x) x/sum(x)*100)
-#     count_df_ordered<-as.data.frame(dd)
-#   }
-#   count_df_top12 = count_df_ordered[1:12,]
-#   count_df_top12$ST = rownames(count_df_top12)
-#   melt_df = melt(count_df_top12)
-#   colnames(melt_df) = c("ST","Sample","Count")
-#   if (reorder) {
-#     BC = vegdist(t(count_df))
-#     fit = hclust(BC, method = "ward.D")
-#     melt_df$Sample = factor(as.vector(melt_df$Sample), levels = fit$labels[fit$order])
-#   }
-#   p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = RColorBrewer::brewer.pal(12,"Paired")) + theme(axis.text.x = element_text(angle = 90,hjust = 0.95))
-#   return(p)
-# }
 
 make_barplot_epidome = function(count_table, reorder = FALSE, normalize = TRUE) {
   count_df_ordered = count_table[order(rowSums(count_table),decreasing = T),]
