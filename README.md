@@ -5,6 +5,8 @@ Databases, scripts and example data pertaining to the epidome. Subspecies classi
 * [What is the epidome?](#what-is-the-epidome)
 * [Why study S. epidermidis?](#why-study-S.-epidermidis)
 * [Why not whole genome sequencing?](#why-not-whole-genome-sequencing)
+* [Manual](#anual)
+  * [Basics](#basics)
 
 
 ## What is the epidome?
@@ -15,6 +17,14 @@ Although <i>S. epidermidis</i> is mostly found as a commensal of the human nasal
 
 ## Why not whole genome sequencing?
 Multiple excellent epidimiological and genomic studies based on WGS data have been performed trying to identify the factors necessary for <i>S. epidermidis</i> to be succesfully invasive. These are mostly focused on comparing Isolates from infections to those found as commensals in nasal and skin swabs, and have helped underline the key role of antibiotic resistance in infections. While most clinical infections are likely monoclonal as a result of extensive prophylactic treatment it has become evident that commensal <i>S. epidermidis</i> communities are almost always polyclonal. Examining single isolates will therefore provide a highly incomplete picture of the diversity found in commensal <i>S. epidermidis</i> communities.
+
+
+## Manual
+
+### Basics
+
+
+
 
 
 
