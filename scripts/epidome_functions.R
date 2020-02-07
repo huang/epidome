@@ -31,11 +31,11 @@ setup_epidome_object <- function(primer1_table,primer2_table,metadata_table) {
     
   } else {
     epi1_table = primer1_counts[,match(colnames(primer1_counts),samples_with_both_primers)]
-    epi2_table = primer1_counts[,match(colnames(primer2_counts),samples_with_both_primers)]
+    epi2_table = primer2_counts[,match(colnames(primer2_counts),samples_with_both_primers)]
     epidome_object = list('p1_seqs'=primer1_seqs,'p1_table'=epi1_table,'p2_seqs'=primer2_seqs,'p2_table'=epi2_table,'sample_names'=samples_with_both_primers)
     print(paste0("No metadata loaded"))
     print(paste0(length(samples_missing_primer2_data)," samples are found in p1 table but not in p2 table: ",paste0(samples_missing_primer2_data,collapse = " ")))
-    print(paste0(length(samples_missing_primer1_data)," samples are found in p2 table but not in p1 table: ",paste0(samples_missing_primer2_data,collapse = " ")))
+    print(paste0(length(samples_missing_primer1_data)," samples are found in p2 table but not in p1 table: ",paste0(samples_missing_primer1_data,collapse = " ")))
     print(paste0(length(samples_with_both_primers)," samples are found in both tables and are included in epidome object"))
   }
   return(epidome_object)
