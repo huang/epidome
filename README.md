@@ -2,9 +2,9 @@
 Databases, scripts and example data pertaining to the epidome. Subspecies classification of S. epidermidis based on amplicon sequencing.
 
 ## Contents
-* [What is the epidome?](#what-is-the-epidome?)
-* [Why study S. epidermidis?](#why-study-S.-epidermidis?)
-* [Why not whole genome sequencing?](#why-not-whole-genome-sequencing?)
+* [What is the epidome?](#what-is-the-epidome)
+* [Why study S. epidermidis?](#why-study-S.-epidermidis)
+* [Why not whole genome sequencing?](#why-not-whole-genome-sequencing)
 
 
 ## What is the epidome?
