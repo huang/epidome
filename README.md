@@ -1,6 +1,10 @@
 # epidome
 Databases, scripts and example data pertaining to the epidome. Subspecies classification of S. epidermidis based on amplicon sequencing.
 
+## Contents
+* [What is the epidome?](#What is the epidome?)
+
+
 # What is the epidome?
 An approach to examining the polyclonal nature of <i>Staphylococcus epidermidis</i> bacterial communities based on targeted sequencing, similar to classical 16s rRNA gene sequencing, but using targets that are specific to <i>S. epidermidis</i> and which can be used to differentiate between clones of <i>S. epidermidis</i> on a subspecies level
 
