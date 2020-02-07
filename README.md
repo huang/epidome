@@ -27,7 +27,9 @@ Multiple excellent epidimiological and genomic studies based on WGS data have be
 
 #### Load dada2 output and metadata into R, make sure rownames in metadata match names of isolates
 epi01_table = read.table("epi01_dada_output.csv",sep = ";",header=TRUE,row.names=1)
+
 epi02_table = read.table("epi02_dada_output.csv",sep = ";",header=TRUE,row.names=1)
+
 metadata_table = read.table("metadata_table.txt")
 
 #### Setup object for easy handling of data
