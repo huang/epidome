@@ -7,12 +7,15 @@ ST_amplicon_table = read.table("DB/epidome_ST_amplicon_frequencies.txt",sep = "\
 ### Load dada2 output for the two primers ###
 epi01_table = read.table("example_data/epi01_dada_output_article.csv",sep = ";",header=TRUE,row.names=1)
 epi02_table = read.table("example_data/epi02_dada_output_article.csv",sep = ";",header=TRUE,row.names=1)
+epi01_table = read.table("/Volumes/data/MPV/ANMC/Epidome_190920/EPI_dada2_output/EPI_G216_Bayes_190920_tax_and_counts_mb35.csv",sep = ";",header=TRUE,row.names=1)
+epi02_table = read.table("/Volumes/data/MPV/ANMC/Epidome_190920/EPI_dada2_output/EPI_yycH_Bayes_190920_tax_and_counts_mb35.csv",sep = ";",header=TRUE,row.names=1)
 
 ### Load metadata table
 metadata_table = read.table("example_data/article_metadata.txt",header=TRUE,row.names=1)
 
 ### Setup an object for easy handling of epidome data
 epidome_object = setup_epidome_object(epi01_table,epi02_table,metadata_table = metadata_table)
+epidome_object = setup_epidome_object(epi01_table,epi02_table)
 
 ### Check if number of sequences from each primer for each samples match up approximately ###
 compare_primer_output(epidome_object)
@@ -37,6 +40,9 @@ count_table = classify_epidome(epidome_ASV_combined,ST_amplicon_table)
 p = make_barplot_epidome(count_table,reorder=FALSE,normalize=TRUE)
 p
 
+p2 = p
+
+grid.arrange(p1,p2,ncol=2)
 
 
 ### Data stratification based on metadata variables
