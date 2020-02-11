@@ -21,8 +21,14 @@ setup_epidome_object <- function(primer1_table,primer2_table,metadata_table) {
     samples_missing_primer_data = metadata_names[which(!metadata_names %in% samples_with_both_primers)]
     include_names = metadata_names[which(metadata_names %in% samples_with_both_primers)]
     metadata_table = metadata_table[match(metadata_names,include_names),]
-    epi1_table = primer1_counts[,match(colnames(primer1_counts),include_names)]
-    epi2_table = primer2_counts[,match(colnames(primer2_counts),include_names)]
+    #primer1_include = match(colnames(primer1_counts),include_names)
+    primer1_include = match(include_names,colnames(primer1_counts))
+    primer1_include = primer1_include[which(!is.na(primer1_include))]
+    #primer2_include = match(colnames(primer2_counts),include_names)
+    primer2_include = match(include_names,colnames(primer2_counts))
+    primer2_include = primer2_include[which(!is.na(primer2_include))]
+    epi1_table = primer1_counts[,primer1_include]
+    epi2_table = primer2_counts[,primer2_include]
     epidome_object = list('p1_seqs'=primer1_seqs,'p1_table'=epi1_table,'p2_seqs'=primer2_seqs,'p2_table'=epi2_table,'metadata'=metadata_table,'sample_names'=include_names,'meta_variables'=colnames(metadata_table))
     print(paste0("Metadata loaded with ",length(metadata_names)," samples and ",ncol(metadata_table)," variables"))
     print(paste0(length(samples_missing_metadata)," samples are found in both primer sets but not in metadata: ",paste0(samples_missing_metadata,collapse = " ")))
@@ -470,3 +476,30 @@ dist_comparison = function(dist_object,group_factor) {
   return_list = list('plot'=p,'dist.data'=return_df,'p.values'=as.data.frame(p_mat),'IQR.values'=as.data.frame(median_IQR_mat))
   return(return_list)
 }
+
+
+sample_names_epidome = function(epidome_object) {
+  return(epidome_object$sample_names)
+}
+p1_table = function(epidome_object) {
+  return(epidome_object$p1_table)
+}
+p2_table = function(epidome_object) {
+  return(epidome_object$p2_table)
+}
+p1_seqs = function(epidome_object) {
+  return(epidome_object$p1_seqs)
+}
+p2_seqs = function(epidome_object) {
+  return(epidome_object$p2_seqs)
+}
+get_metadata = function(epidome_object,variable="") {
+  if (variable=="") {
+    return_object = epidome_object$metadata
+  } else {
+    return_object = epidome_object$metadata[,which(epidome_object$meta_variables==variable)]
+  }
+  return(return_object)
+}
+
+
