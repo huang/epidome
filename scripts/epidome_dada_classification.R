@@ -15,7 +15,7 @@ metadata_table = read.table("example_data/article_metadata.txt",header=TRUE,row.
 
 ### Setup an object for easy handling of epidome data
 epidome_object = setup_epidome_object(epi01_table,epi02_table,metadata_table = metadata_table)
-epidome_object = setup_epidome_object(epi01_table,epi02_table)
+#epidome_object = setup_epidome_object(epi01_table,epi02_table)
 
 ### Check if number of sequences from each primer for each samples match up approximately ###
 compare_primer_output(epidome_object)
@@ -62,15 +62,15 @@ p
 epidome_object_mock_ASV_combined = prune_by_variable_epidome(epidome_object,"sample.type",c("Mock community"))
 count_table_mock = classify_epidome(epidome_object_mock_ASV_combined,ST_amplicon_table)
 p = make_barplot_epidome(count_table_mock,reorder=FALSE,normalize=TRUE)
-p
+p + ggtitle("Distribution of S. epidermidis sequence types in nose and skin samples")
 
 
 ### make PCA plots of clinical samples. Color according to variable in metadata and (optional) indicate colors to use. Set plot_ellipse=FALSE to not plot ellipse ###
 epidome_object_clinical_norm = normalize_epidome_object(epidome_object_clinical) ### Normalize counts to percent
 PCA_patient_colored = plot_PCA_epidome(epidome_object_clinical_norm,color_variable = "patient.ID",colors = c(),plot_ellipse = FALSE)
-PCA_patient_colored
+PCA_patient_colored + ggtitle("PCA plot of nose and skin samples colored by subject")
 PCA_sample_site_colored = plot_PCA_epidome(epidome_object_clinical_norm,color_variable = "sample.site",colors = c("Red","Blue"),plot_ellipse = TRUE)
-PCA_sample_site_colored
+PCA_sample_site_colored + ggtitle("PCA plot of nose and skin samples colored by sampling site")
 
 
 

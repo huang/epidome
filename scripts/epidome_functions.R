@@ -357,12 +357,15 @@ make_barplot_epidome = function(count_table, reorder = FALSE, normalize = TRUE) 
   } else {
     ylabel = "Absolute abundance (number of sequences)"
   }
-  count_df_top12 = rbind(count_df_ordered[1:11,],colSums(count_df_ordered[-c(1:11),]))
-  rownames(count_df_top12)[nrow(count_df_top12)] = "Other"
+  count_novel = count_df_ordered[which(rownames(count_df_ordered)=="-"),]
+  count_unclassified = count_df_ordered[which(rownames(count_df_ordered)=="Unclassified"),]
+  count_df_top12 = count_df_ordered[-which(rownames(count_df_ordered) %in% c("-","Unclassified")),]
+  count_df_top12 = rbind(count_df_top12[1:10,],colSums(count_df_top12[-c(1:10),])+count_novel,count_unclassified)
+  rownames(count_df_top12)[c((nrow(count_df_top12)-1),nrow(count_df_top12))] = c("Other","Unclassified")
   count_df_top12$ST = rownames(count_df_top12)
   melt_df = melt(count_df_top12)
   colnames(melt_df) = c("ST","Sample","Count")
-  non_ST_levels = c("-","Other","Unclassified")
+  non_ST_levels = c("Other","Unclassified")
   ST_levels = as.vector(count_df_top12$ST)[which(!count_df_top12$ST %in% non_ST_levels)]
   ST_levels_ordered = c(sort(as.numeric(ST_levels)),non_ST_levels)
   if (reorder) {
