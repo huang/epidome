@@ -1,5 +1,7 @@
-library(ggplot2)
-library(pls)
+require(ggplot2)
+require(pls)
+require(reshape)
+require(vegan)
 
 setup_epidome_object <- function(primer1_table,primer2_table,metadata_table) {
   primer1_counts = primer1_table[,3:ncol(primer1_table)]
@@ -20,7 +22,9 @@ setup_epidome_object <- function(primer1_table,primer2_table,metadata_table) {
     samples_missing_metadata = samples_with_both_primers[which(!samples_with_both_primers %in% metadata_names)]
     samples_missing_primer_data = metadata_names[which(!metadata_names %in% samples_with_both_primers)]
     include_names = metadata_names[which(metadata_names %in% samples_with_both_primers)]
-    metadata_table = metadata_table[match(metadata_names,include_names),]
+    metadata_include = match(include_names,metadata_names)
+    metadata_include = metadata_include[which(!is.na(metadata_include))]
+    metadata_table = metadata_table[metadata_include,]
     #primer1_include = match(colnames(primer1_counts),include_names)
     primer1_include = match(include_names,colnames(primer1_counts))
     primer1_include = primer1_include[which(!is.na(primer1_include))]
@@ -49,11 +53,16 @@ setup_epidome_object <- function(primer1_table,primer2_table,metadata_table) {
 
 
 
-compare_primer_output <- function(epidome_object) {
+compare_primer_output <- function(epidome_object, color_variable = "") {
   p1_counts = colSums(epidome_object$p1_table)
   p2_counts = colSums(epidome_object$p2_table)
   cor = cor.test(p1_counts,p2_counts)
-  p =ggplot(data.frame(p1_counts,p2_counts),aes(x=p1_counts,y=p2_counts)) + geom_point() + ggtitle(paste0("Pearson correlation coefficient: ",sprintf(cor$estimate, fmt = '%#.2f'),", p = ",sprintf(cor$p.value, fmt = '%#.3f')))
+  if (color_variable=="") {
+    p =ggplot(data.frame(p1_counts,p2_counts),aes(x=p1_counts,y=p2_counts)) + geom_point() + ggtitle(paste0("Pearson correlation coefficient: ",sprintf(cor$estimate, fmt = '%#.2f'),", p = ",sprintf(cor$p.value, fmt = '%#.3f')))
+  } else {
+    p =ggplot(data.frame(p1_counts,p2_counts),aes(x=p1_counts,y=p2_counts,color = get_metadata(epidome_object,color_variable))) + geom_point() + ggtitle(paste0("Pearson correlation coefficient: ",sprintf(cor$estimate, fmt = '%#.2f'),", p = ",sprintf(cor$p.value, fmt = '%#.3f'))) + labs(color = color_variable)
+  }
+  
   p
   return(list('plot'=p,'cor_test'=cor))
 }
@@ -344,6 +353,9 @@ make_barplot_epidome = function(count_table, reorder = FALSE, normalize = TRUE) 
   if (normalize) {
     dd<-apply(count_df_ordered, 2, function(x) x/sum(x)*100)
     count_df_ordered<-as.data.frame(dd)
+    ylabel = "Relative abundance (% of sequences)"
+  } else {
+    ylabel = "Absolute abundance (number of sequences)"
   }
   count_df_top12 = rbind(count_df_ordered[1:11,],colSums(count_df_ordered[-c(1:11),]))
   rownames(count_df_top12)[nrow(count_df_top12)] = "Other"
@@ -354,12 +366,12 @@ make_barplot_epidome = function(count_table, reorder = FALSE, normalize = TRUE) 
   ST_levels = as.vector(count_df_top12$ST)[which(!count_df_top12$ST %in% non_ST_levels)]
   ST_levels_ordered = c(sort(as.numeric(ST_levels)),non_ST_levels)
   if (reorder) {
-    BC = vegdist(t(count_df))
+    BC = vegdist(t(count_table))
     fit = hclust(BC, method = "ward.D")
     melt_df$Sample = factor(as.vector(melt_df$Sample), levels = fit$labels[fit$order])
   }
   melt_df$ST = factor(as.vector(melt_df$ST),levels = ST_levels_ordered)
-  p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = RColorBrewer::brewer.pal(12,"Paired")) + theme(axis.text.x = element_text(angle = 90,hjust = 0.95))
+  p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = RColorBrewer::brewer.pal(12,"Paired")) + theme(axis.text.x = element_text(angle = 90,hjust = 0.95)) + ylab(ylabel)
   return(p)
 }
 

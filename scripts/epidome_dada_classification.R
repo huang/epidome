@@ -19,6 +19,8 @@ epidome_object = setup_epidome_object(epi01_table,epi02_table)
 
 ### Check if number of sequences from each primer for each samples match up approximately ###
 compare_primer_output(epidome_object)
+compare_primer_output(epidome_object,"sample.type")
+compare_primer_output(epidome_object,"patient.sample.site")
 
 
 
@@ -37,7 +39,7 @@ epidome_filtered_samples = filter_lowcount_samples_epidome(epidome_object,500,50
 epidome_ASV_combined = combine_ASVs_epidome(epidome_filtered_samples)
 count_table = classify_epidome(epidome_ASV_combined,ST_amplicon_table)
 ### Make barplot based on classification. Set reorder=TRUE to order samples based on Bray Curtis dissimilarity and/or set normalize=FALSE to not normalize to percent ###
-p = make_barplot_epidome(count_table,reorder=FALSE,normalize=TRUE)
+p = make_barplot_epidome(count_table,reorder=TRUE,normalize=TRUE)
 p
 
 p2 = p
