@@ -348,6 +348,122 @@ classify_epidome = function(epidome_object,ST_amplicon_table) {
 }
 
 
+classify_epidome_2 = function(epidome_object,ST_amplicon_table) {
+  epidome_object_norm = normalize_epidome_object(epidome_object)
+  p1_seqs = unlist(lapply(as.vector(epidome_object$p1_seqs),function(x) substr(x,4,nchar(x))))
+  p2_seqs = unlist(lapply(as.vector(epidome_object$p2_seqs),function(x) substr(x,4,nchar(x))))
+  n_samples = length(epidome_object$sample_names)
+  n_p1_seqs = length(p1_seqs)
+  count_table = matrix(nrow = 0, ncol = n_samples,dimnames = list('ST'=c(),'Samples'=epidome_object$sample_names))
+  match_type_table = matrix(nrow = n_p1_seqs, ncol = n_samples)
+  count_table_names = c()
+  unclassified_count_vec = rep(0,n_samples)
+  g1_unclassified_count_vec = rep(0,n_samples)
+  for (i in 1:n_p1_seqs) {
+    p1_seq = p1_seqs[i]
+    if (p1_seq != "Unclassified") {
+      p1_seq_ST_table = ST_amplicon_table[which(ST_amplicon_table$epi01_ASV==p1_seq),]
+      unique_p1_ASVs = unique(as.vector(p1_seq_ST_table$ST))
+      p2_ASVs_matching_p1 = p1_seq_ST_table$epi02_ASV
+      if (length(unique_p1_ASVs)==1) {
+        count_vec = as.numeric(as.vector(epidome_object$p1_table[i,]))
+        classification_group = as.vector(unique_p1_ASVs)[1]
+        if (classification_group %in% as.vector(p2_ASVs_matching_p1)) {
+          if (classification_group %in% count_table_names) {
+            classification_idx = which(count_table_names == classification_group)
+            count_table[classification_idx,] = count_table[classification_idx,]+count_vec
+          } else {
+            count_table = rbind(count_table,count_vec)
+            count_table_names = c(count_table_names,classification_group)
+          }
+        } else {
+          print(p1_seq_ST_table)
+          unclassified_count_vec = unclassified_count_vec+count_vec
+        }
+        
+        match_type_vec = rep("Unique epi01 match",n_samples)
+        match_type_table[i,] = match_type_vec
+      } else {
+        count_vec = rep(0,n_samples)
+        for (j in 1:n_samples) {
+          p1_percent = epidome_object_norm$p1_table[i,j]
+          p1_count = epidome_object$p1_table[i,j]
+          if (p1_percent > 0.01) {
+            #p2_seqs_present_within_difference_threshold_idx = which(epidome_object_norm$p2_table[,j]<(p1_percent+10) & epidome_object_norm$p2_table[,j]>(p1_percent-10))
+            p2_seqs_present_within_difference_threshold_idx = which(epidome_object_norm$p2_table[,j]>(p1_percent-10) & epidome_object_norm$p2_table[,j]>0.01)
+            p2_seqs_present_ASVs = p2_seqs[p2_seqs_present_within_difference_threshold_idx]
+            p2_seqs_present_ASVs_matching_p1 = p2_seqs_present_ASVs[which(p2_seqs_present_ASVs %in% p2_ASVs_matching_p1)]
+            p2_percent = epidome_object_norm$p2_table[which(p2_seqs %in% p2_seqs_present_ASVs_matching_p1),j]
+            p2_count = epidome_object$p2_table[which(p2_seqs %in% p2_seqs_present_ASVs_matching_p1),j]
+            if (length(p2_seqs_present_ASVs_matching_p1) == 0) {
+              match_type_table[i,j] = "epi01 match without epi02 match"
+              ST_order = order(p1_seq_ST_table$freq,decreasing = T)
+              classification_group = as.vector(p1_seq_ST_table$ST)[ST_order[1]]
+              if (classification_group %in% count_table_names) {
+                classification_idx = which(count_table_names == classification_group)
+                count_table[classification_idx,j] = count_table[classification_idx,j]+p1_count
+              } else {
+                count_vec = rep(0,n_samples)
+                count_vec[j] = p1_count
+                count_table = rbind(count_table,count_vec)
+                count_table_names = c(count_table_names,classification_group)
+              }
+              #unclassified_count_vec[j] = unclassified_count_vec[j]+p1_count
+            }
+            else if (length(p2_seqs_present_ASVs_matching_p1) == 1) {
+              p1_p2_seq_ST_table = p1_seq_ST_table[which(p1_seq_ST_table$epi02_ASV==p2_seqs_present_ASVs_matching_p1[1]),]
+              ST_order = order(p1_p2_seq_ST_table$freq,decreasing = T)
+              classification_group = as.vector(p1_p2_seq_ST_table$ST)[ST_order[1]]
+              if (classification_group %in% count_table_names) {
+                classification_idx = which(count_table_names == classification_group)
+                count_table[classification_idx,j] = count_table[classification_idx,j]+p1_count
+              } else {
+                count_vec = rep(0,n_samples)
+                count_vec[j] = p1_count
+                count_table = rbind(count_table,count_vec)
+                count_table_names = c(count_table_names,classification_group)
+              }
+              match_type_table[i,j] = "Unique epi01 epi02 combination"
+            } else {
+              p1_p2_seq_ST_table = p1_seq_ST_table[which(p1_seq_ST_table$epi02_ASV %in% p2_seqs_present_ASVs_matching_p1),]
+              ST_order = order(p1_p2_seq_ST_table$freq,decreasing = T)
+              classification_group = as.vector(p1_p2_seq_ST_table$ST)[ST_order[1]]
+              if (classification_group %in% count_table_names) {
+                classification_idx = which(count_table_names == classification_group)
+                count_table[classification_idx,j] = count_table[classification_idx,j]+p1_count
+              } else {
+                count_vec = rep(0,n_samples)
+                count_vec[j] = p1_count
+                count_table = rbind(count_table,count_vec)
+                count_table_names = c(count_table_names,classification_group)
+              }
+              #unclassified_count_vec[j] = unclassified_count_vec[j]+p1_count
+              match_type_table[i,j] = c("Non unique epi01 epi02 combination")
+            }
+            
+          } else {
+            match_type_table[i,j] = "Low counts"
+            unclassified_count_vec[j] = unclassified_count_vec[j]+p1_count
+          }
+          
+        }
+      }
+    } else {
+      count_vec = as.numeric(as.vector(epidome_object$p1_table[i,]))
+      unclassified_count_vec = unclassified_count_vec+count_vec
+      g1_unclassified_count_vec = g1_unclassified_count_vec+count_vec
+      match_type_vec = rep("Unclassified epi01 match",n_samples)
+      match_type_table[i,] = match_type_vec
+    }
+    
+  }
+  count_table = rbind(count_table,unclassified_count_vec)
+  rownames(count_table) = c(count_table_names,"Unclassified")
+  count_df = as.data.frame(count_table)
+  return(count_df)
+}
+
+
 make_barplot_epidome = function(count_table, reorder = FALSE, normalize = TRUE) {
   count_df_ordered = count_table[order(rowSums(count_table),decreasing = T),]
   if (normalize) {

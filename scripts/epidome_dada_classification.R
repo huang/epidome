@@ -9,9 +9,21 @@ epi01_table = read.table("example_data/epi01_dada_output_article.csv",sep = ";",
 epi02_table = read.table("example_data/epi02_dada_output_article.csv",sep = ";",header=TRUE,row.names=1)
 epi01_table = read.table("/Volumes/data/MPV/ANMC/Epidome_190920/EPI_dada2_output/EPI_G216_Bayes_190920_tax_and_counts_mb35.csv",sep = ";",header=TRUE,row.names=1)
 epi02_table = read.table("/Volumes/data/MPV/ANMC/Epidome_190920/EPI_dada2_output/EPI_yycH_Bayes_190920_tax_and_counts_mb35.csv",sep = ";",header=TRUE,row.names=1)
+epi01_table = read.table("example_data/190920_run1_G216_classified.csv",sep = ";",header=TRUE,row.names=1)
+epi02_table = read.table("example_data/190920_run1_yycH_classified.csv",sep = ";",header=TRUE,row.names=1)
+epi01_table = read.table("example_data/190920_run2_G216_classified.csv",sep = ";",header=TRUE,row.names=1)
+epi02_table = read.table("example_data/190920_run2_yycH_classified.csv",sep = ";",header=TRUE,row.names=1)
+epi01_table = read.table("example_data/190920_run2_G216_classified_997.csv",sep = ";",header=TRUE,row.names=1)
+epi02_table = read.table("example_data/190920_run2_yycH_classified_997.csv",sep = ";",header=TRUE,row.names=1)
+epi01_table = read.table("example_data/article_g216_reclassified.csv",sep = ";",header=TRUE,row.names=1)
+epi02_table = read.table("example_data/article_yycH_reclassified.csv",sep = ";",header=TRUE,row.names=1)
+epi01_table = read.table("example_data/article_G216_reclassified.csv",sep = ";",header=TRUE,row.names=1)
+epi02_table = read.table("example_data/article_yycH_reclassified.csv",sep = ";",header=TRUE,row.names=1)
+
 
 ### Load metadata table
 metadata_table = read.table("example_data/article_metadata.txt",header=TRUE,row.names=1)
+metadata_table = read.table("../epidome_backup/sample_metadata.txt",header=TRUE,row.names=1)
 
 ### Setup an object for easy handling of epidome data
 epidome_object = setup_epidome_object(epi01_table,epi02_table,metadata_table = metadata_table)
@@ -59,7 +71,7 @@ p = make_barplot_epidome(count_table_clinical,reorder=FALSE,normalize=TRUE)
 p
 
 ### make barplot of mock samples only 
-epidome_object_mock_ASV_combined = prune_by_variable_epidome(epidome_object,"sample.type",c("Mock community"))
+epidome_object_mock_ASV_combined = prune_by_variable_epidome(epidome_ASV_combined,"sample.type",c("Mock community"))
 count_table_mock = classify_epidome(epidome_object_mock_ASV_combined,ST_amplicon_table)
 p = make_barplot_epidome(count_table_mock,reorder=FALSE,normalize=TRUE)
 p + ggtitle("Distribution of S. epidermidis sequence types in nose and skin samples")

@@ -71,6 +71,8 @@ def parse_blast(blast_output_file,pident_req):
 				if bitscores[ASV_number]<bitscore:
 					ASV_to_ref[ASV_number] = ref_number
 					bitscores[ASV_number] = bitscore
+				elif bitscores[ASV_number]==bitscore:
+					ASV_to_ref[ASV_number] = "NA"
 			else:
 				ASV_to_ref[ASV_number] = ref_number
 				bitscores[ASV_number] = bitscore
@@ -91,18 +93,36 @@ def rename_ASVs(ASV_to_ref_dict,csv_header,csv_lines,dada_csv_renamed_file):
 	o.write(printline)
 	o.close()
 
-#def print_ASV_count_table()
-
+def print_ASV_count_table(seqs, IDs, counts, ASV_to_ref,new_dada_output_file):
+	printline = "\"ASV\";\"Seq_number\";"+";".join(IDs)+"\n"
+	for n in range(len(seqs)):
+		ASV = seqs[n][1:-1]
+		count_list = []
+		for m in range(len(counts)):
+			count_list.append(counts[m][n])
+		number = str(n+1)
+		if number in ASV_to_ref:
+			seq_number = ASV_to_ref[number]
+			if seq_number == "NA":
+				printline += "\""+str(number)+"\";\""+ASV+"\";"+seq_number+";"+";".join(count_list)+"\n"
+			else:
+				printline += "\""+str(number)+"\";\""+ASV+"\";\"seq"+seq_number+"\";"+";".join(count_list)+"\n"
+		else:
+			seq_number = "NA"
+			printline += "\""+str(number)+"\";\""+ASV+"\";"+seq_number+";"+";".join(count_list)+"\n"
+	o = open(new_dada_output_file,'w')
+	o.write(printline)
+	o.close()
 
 dada_csv_file = sys.argv[1]
 fasta_output_file = sys.argv[2]
 reference_fasta = sys.argv[3]
 blast_output_file = sys.argv[4]
-new_dada_file = sys.argv[5]
+new_dada_output_file = sys.argv[5]
 pident_req = sys.argv[6]
 
 seqs, IDs, counts = load_dada_output(dada_csv_file)
 print_fasta(seqs,fasta_output_file)
 run_blast(fasta_output_file,reference_fasta,blast_output_file,pident_req)
 ASV_to_ref = parse_blast(blast_output_file,pident_req)
-print(ASV_to_ref)
+print_ASV_count_table(seqs, IDs, counts, ASV_to_ref,new_dada_output_file)
