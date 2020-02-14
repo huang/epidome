@@ -69,12 +69,12 @@ def parse_blast(blast_output_file,pident_req):
 			bitscore = float(line[11])
 			if ASV_number in ASV_to_ref:
 				if bitscores[ASV_number]<bitscore:
-					ASV_to_ref[ASV_number] = [ref_number]
+					ASV_to_ref[ASV_number] = ref_number
 					bitscores[ASV_number] = bitscore
 				elif bitscores[ASV_number]==bitscore:
-					ASV_to_ref[ASV_number].append(ref_number)
+					ASV_to_ref[ASV_number] = "NA"
 			else:
-				ASV_to_ref[ASV_number] = [ref_number]
+				ASV_to_ref[ASV_number] = ref_number
 				bitscores[ASV_number] = bitscore
 	return(ASV_to_ref)
 
@@ -102,7 +102,7 @@ def print_ASV_count_table(seqs, IDs, counts, ASV_to_ref,new_dada_output_file):
 			count_list.append(counts[m][n])
 		number = str(n+1)
 		if number in ASV_to_ref:
-			seq_number = ','.join(ASV_to_ref[number])
+			seq_number = ASV_to_ref[number]
 			if seq_number == "NA":
 				printline += "\""+str(number)+"\";\""+ASV+"\";"+seq_number+";"+";".join(count_list)+"\n"
 			else:
