@@ -23,6 +23,8 @@ epi01_table = read.table("example_data/190920_run2_g216_test.csv",sep = ";",head
 epi02_table = read.table("example_data/190920_run2_yycH_test.csv",sep = ";",header=TRUE,row.names=1)
 epi01_table = read.table("example_data/article_g216_test.csv",sep = ";",header=TRUE,row.names=1)
 epi02_table = read.table("example_data/article_yycH_test.csv",sep = ";",header=TRUE,row.names=1)
+epi01_table = read.table("example_data/190920_run1_G216_classified_995p.csv",sep = ";",header=TRUE,row.names=1)
+epi02_table = read.table("example_data/190920_run1_yycH_classified_995p.csv",sep = ";",header=TRUE,row.names=1)
 
 
 ### Load metadata table

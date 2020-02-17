@@ -180,15 +180,8 @@ $(document).ready(function () {
 <ul>
 <li><a href="#classification-of-dada2-generated-asvs-creation-of-barplots-pca-plots-and-more"><strong>Classification of dada2 generated ASVs, creation of barplots, PCA plots and more</strong></a><ul>
 <li><a href="#load-functions">Load functions</a></li>
-<li><a href="#read-in-data.-required-data-is">Read in data. Required data is:</a></li>
-<li><a href="#table-containing-frequencies-of-sts-and-amplicons-found-in-github-repo">Table containing frequencies of STs and amplicons (found in github repo)</a></li>
-<li><a href="#sequence-count-tables-in-dada2-format-created-by-running-asv_blast_classification.py-on-dada2-asv-table-output">Sequence count tables in dada2 format created by running ASV_blast_classification.py on dada2 ASV table output</a></li>
-<li><a href="#optional-metadata-table.-row-names-must-match-column-names-in-dada-output.">OPTIONAL: metadata table. Row names must match column names in dada output.</a></li>
-<li><a href="#setup-object-for-data-handling">Setup object for data handling</a></li>
-<li><a href="#check-how-well-the-output-from-the-two-primer-sets-align.-color_variable-can-be-left-out">Check how well the output from the two primer sets align. Color_variable can be left out</a></li>
-<li><a href="#combine-asvs-assigned-to-the-same-taxa">Combine ASVs assigned to the same taxa</a></li>
-<li><a href="#remove-low-count-samples-from-data-set.-only-include-samples-where-number-of-sequences-from-primer1-x-and-sequences-form-primer2-y">Remove low count samples from data set. (Only include samples where number of sequences from primer1 &gt;= x and sequences form primer2 &gt;= y)</a></li>
-<li><a href="#assign-asvs-to-sts-on-a-per-sample-basis-and-make-barplot">Assign ASVs to STs on a per sample basis and make barplot</a></li>
+<li><a href="#data-stratification-based-on-metadata-variables-requires-metadata">Data stratification based on metadata variables (requires metadata)</a></li>
+<li><a href="#make-pca-plots-and-color-by-given-variable-requires-metadata">make PCA plots and color by given variable (requires metadata)</a></li>
 </ul></li>
 </ul>
 </div>
@@ -205,49 +198,68 @@ $(document).ready(function () {
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
+<div id="read-in-data.-required-data-is" class="section level4">
+<h4>Read in data. Required data is:</h4>
+<div id="table-containing-frequencies-of-sts-and-amplicons-found-in-github-repo" class="section level6">
+<h6>Table containing frequencies of STs and amplicons (found in github repo)</h6>
 </div>
-<div id="read-in-data.-required-data-is" class="section level3">
-<h3>Read in data. Required data is:</h3>
+<div id="sequence-count-tables-in-dada2-format-created-by-running-asv_blast_classification.py-on-dada2-asv-table-output" class="section level6">
+<h6>Sequence count tables in dada2 format created by running ASV_blast_classification.py on dada2 ASV table output</h6>
 </div>
-<div id="table-containing-frequencies-of-sts-and-amplicons-found-in-github-repo" class="section level3">
-<h3>Table containing frequencies of STs and amplicons (found in github repo)</h3>
-</div>
-<div id="sequence-count-tables-in-dada2-format-created-by-running-asv_blast_classification.py-on-dada2-asv-table-output" class="section level3">
-<h3>Sequence count tables in dada2 format created by running ASV_blast_classification.py on dada2 ASV table output</h3>
-</div>
-<div id="optional-metadata-table.-row-names-must-match-column-names-in-dada-output." class="section level3">
-<h3>OPTIONAL: metadata table. Row names must match column names in dada output.</h3>
+<div id="optional-metadata-table.-row-names-must-match-column-names-in-dada-output." class="section level6">
+<h6>OPTIONAL: metadata table. Row names must match column names in dada output.</h6>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuU1RfYW1wbGljb25fdGFibGUgPSByZWFkLnRhYmxlKFwiREIvZXBpZG9tZV9TVF9hbXBsaWNvbl9mcmVxdWVuY2llcy50eHRcIixzZXAgPSBcIlxcdFwiKVxuXG5gYGAifQ== -->
-<pre class="r"><code>ST_amplicon_table = read.table(&quot;DB/epidome_ST_amplicon_frequencies.txt&quot;,sep = &quot;\t&quot;)
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWV0YWRhdGFfdGFibGUgPSByZWFkLnRhYmxlKFwiZXhhbXBsZV9kYXRhL2FydGljbGVfbWV0YWRhdGEudHh0XCIsaGVhZGVyPVRSVUUscm93Lm5hbWVzPTEpXG5cbmBgYCJ9 -->
+<pre class="r"><code>metadata_table = read.table(&quot;example_data/article_metadata.txt&quot;,header=TRUE,row.names=1)
 </code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiY2Fubm90IG9wZW4gZmlsZSAnREIvZXBpZG9tZV9TVF9hbXBsaWNvbl9mcmVxdWVuY2llcy50eHQnOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5RXJyb3IgaW4gZmlsZShmaWxlLCBcInJ0XCIpIDogY2Fubm90IG9wZW4gdGhlIGNvbm5lY3Rpb25cbiJ9 -->
-<pre><code>cannot open file 'DB/epidome_ST_amplicon_frequencies.txt': No such file or directoryError in file(file, &quot;rt&quot;) : cannot open the connection</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiY2Fubm90IG9wZW4gZmlsZSAnZXhhbXBsZV9kYXRhL2FydGljbGVfbWV0YWRhdGEudHh0JzogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeUVycm9yIGluIGZpbGUoZmlsZSwgXCJydFwiKSA6IGNhbm5vdCBvcGVuIHRoZSBjb25uZWN0aW9uXG4ifQ== -->
+<pre><code>cannot open file 'example_data/article_metadata.txt': No such file or directoryError in file(file, &quot;rt&quot;) : cannot open the connection</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
-<div id="setup-object-for-data-handling" class="section level3">
-<h3>Setup object for data handling</h3>
+</div>
+<div id="setup-object-for-data-handling" class="section level4">
+<h4>Setup object for data handling</h4>
+<div id="without-metadata" class="section level5">
+<h5>without metadata</h5>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZXBpZG9tZV9vYmplY3QgPSBzZXR1cF9lcGlkb21lX29iamVjdChlcGkwMV90YWJsZSxlcGkwMl90YWJsZSlcblxuYGBgIn0= -->
+<pre class="r"><code>epidome_object = setup_epidome_object(epi01_table,epi02_table)
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFwiTm8gbWV0YWRhdGEgbG9hZGVkXCJcblsxXSBcIjAgc2FtcGxlcyBhcmUgZm91bmQgaW4gcDEgdGFibGUgYnV0IG5vdCBpbiBwMiB0YWJsZTogXCJcblsxXSBcIjAgc2FtcGxlcyBhcmUgZm91bmQgaW4gcDIgdGFibGUgYnV0IG5vdCBpbiBwMSB0YWJsZTogXCJcblsxXSBcIjQ2IHNhbXBsZXMgYXJlIGZvdW5kIGluIGJvdGggdGFibGVzIGFuZCBhcmUgaW5jbHVkZWQgaW4gZXBpZG9tZSBvYmplY3RcIlxuIn0= -->
+<pre><code>[1] &quot;No metadata loaded&quot;
+[1] &quot;0 samples are found in p1 table but not in p2 table: &quot;
+[1] &quot;0 samples are found in p2 table but not in p1 table: &quot;
+[1] &quot;46 samples are found in both tables and are included in epidome object&quot;</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="with-metadata" class="section level5">
+<h5>with metadata</h5>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZXBpZG9tZV9vYmplY3QgPSBzZXR1cF9lcGlkb21lX29iamVjdChlcGkwMV90YWJsZSxlcGkwMl90YWJsZSxtZXRhZGF0YV90YWJsZSA9IG1ldGFkYXRhX3RhYmxlKVxuXG5gYGAifQ== -->
 <pre class="r"><code>epidome_object = setup_epidome_object(epi01_table,epi02_table,metadata_table = metadata_table)
 </code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFwiTWV0YWRhdGEgbG9hZGVkIHdpdGggNTUgc2FtcGxlcyBhbmQgNSB2YXJpYWJsZXNcIlxuWzFdIFwiMCBzYW1wbGVzIGFyZSBmb3VuZCBpbiBib3RoIHByaW1lciBzZXRzIGJ1dCBub3QgaW4gbWV0YWRhdGE6IFwiXG5bMV0gXCI0OSBzYW1wbGVzIGFyZSBmb3VuZCBpbiBtZXRhZGF0YSBidXQgaXMgbWlzc2luZyBmcm9tIG9uZSBvciBib3RoIHByaW1lciBzZXRzOiBQMDFfc2tpbl8yIFAwMV9za2luXzEgUDAxX25vc2VfMiBQMDFfbm9zZV8xIFAwMl9za2luXzIgUDAyX3NraW5fMSBQMDJfbm9zZV8yIFAwMl9ub3NlXzEgRXZlbl9tb2NrXzIgRXZlbl9tb2NrXzEgUDAzX3NraW5fMiBQMDNfc2tpbl8xIFAwM19ub3NlXzIgUDAzX25vc2VfMSBQMDRfc2tpbl8yIFAwNF9za2luXzEgUDA0X25vc2VfMiBQMDRfbm9zZV8xIFAwNV9za2luXzIgUDA1X3NraW5fMSBQMDVfbm9zZV8yIFAwNV9ub3NlXzEgUDA2X3NraW5fMiBQMDZfc2tpbl8xIFAwNl9ub3NlXzIgUDA2X25vc2VfMSBQMDdfc2tpbl8yIFAwN19za2luXzEgUDA3X25vc2VfMiBQMDdfbm9zZV8xIEV4dHJhY3Rpb25fY29udHJvbF8yIEV4dHJhY3Rpb25fY29udHJvbF8xIFAwOF9za2luXzIgUDA4X3NraW5fMSBQMDhfbm9zZV8yIFAwOF9ub3NlXzEgUDA5X3NraW5fMiBQMDlfc2tpbl8xIFAwOV9ub3NlXzIgUDA5X25vc2VfMSBTdGFnZ2VyZWRfbW9ja18yIFN0YWdnZXJlZF9tb2NrXzEgUDEwX25vc2VfMiBQMTBfbm9zZV8xIFAxMF9za2luXzIgUDExX3NraW5fMiBQMTFfc2tpbl8xIFAxMV9ub3NlXzIgUDExX25vc2VfMVwiXG5bMV0gXCI2IHNhbXBsZXMgYXJlIGZvdW5kIGluIG1ldGFkYXRhIGFuZCBib3RoIHRhYmxlcyBhbmQgYXJlIGluY2x1ZGVkIGluIGVwaWRvbWUgb2JqZWN0XCJcbiJ9 -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFwiTWV0YWRhdGEgbG9hZGVkIHdpdGggNTUgc2FtcGxlcyBhbmQgNSB2YXJpYWJsZXNcIlxuWzFdIFwiMSBzYW1wbGVzIGFyZSBmb3VuZCBpbiBib3RoIHByaW1lciBzZXRzIGJ1dCBub3QgaW4gbWV0YWRhdGE6IFAxMF9za2luXzFcIlxuWzFdIFwiMTAgc2FtcGxlcyBhcmUgZm91bmQgaW4gbWV0YWRhdGEgYnV0IGlzIG1pc3NpbmcgZnJvbSBvbmUgb3IgYm90aCBwcmltZXIgc2V0czogRXZlbl9tb2NrXzIgRXZlbl9tb2NrXzEgU3RhZ2dlcmVkX21vY2tfMiBTdGFnZ2VyZWRfbW9ja18xIGV2ZW4ubW9jazMuMV9TMjU4X0wwMDEgZXZlbi5tb2NrMy4yX1MyODJfTDAwMSBldmVuLm1vY2szLjNfUzE5OV9MMDAxIHN0YWdnZXJlZC5tb2NrMy4xX1MyNzBfTDAwMSBzdGFnZ2VyZWQubW9jazMuMl9TMjExX0wwMDEgc3RhZ2dlcmVkLm1vY2szLjNfUzIyM19MMDAxXCJcblsxXSBcIjQ1IHNhbXBsZXMgYXJlIGZvdW5kIGluIG1ldGFkYXRhIGFuZCBib3RoIHRhYmxlcyBhbmQgYXJlIGluY2x1ZGVkIGluIGVwaWRvbWUgb2JqZWN0XCJcbiJ9 -->
 <pre><code>[1] &quot;Metadata loaded with 55 samples and 5 variables&quot;
-[1] &quot;0 samples are found in both primer sets but not in metadata: &quot;
-[1] &quot;49 samples are found in metadata but is missing from one or both primer sets: P01_skin_2 P01_skin_1 P01_nose_2 P01_nose_1 P02_skin_2 P02_skin_1 P02_nose_2 P02_nose_1 Even_mock_2 Even_mock_1 P03_skin_2 P03_skin_1 P03_nose_2 P03_nose_1 P04_skin_2 P04_skin_1 P04_nose_2 P04_nose_1 P05_skin_2 P05_skin_1 P05_nose_2 P05_nose_1 P06_skin_2 P06_skin_1 P06_nose_2 P06_nose_1 P07_skin_2 P07_skin_1 P07_nose_2 P07_nose_1 Extraction_control_2 Extraction_control_1 P08_skin_2 P08_skin_1 P08_nose_2 P08_nose_1 P09_skin_2 P09_skin_1 P09_nose_2 P09_nose_1 Staggered_mock_2 Staggered_mock_1 P10_nose_2 P10_nose_1 P10_skin_2 P11_skin_2 P11_skin_1 P11_nose_2 P11_nose_1&quot;
-[1] &quot;6 samples are found in metadata and both tables and are included in epidome object&quot;</code></pre>
+[1] &quot;1 samples are found in both primer sets but not in metadata: P10_skin_1&quot;
+[1] &quot;10 samples are found in metadata but is missing from one or both primer sets: Even_mock_2 Even_mock_1 Staggered_mock_2 Staggered_mock_1 even.mock3.1_S258_L001 even.mock3.2_S282_L001 even.mock3.3_S199_L001 staggered.mock3.1_S270_L001 staggered.mock3.2_S211_L001 staggered.mock3.3_S223_L001&quot;
+[1] &quot;45 samples are found in metadata and both tables and are included in epidome object&quot;</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
-<div id="check-how-well-the-output-from-the-two-primer-sets-align.-color_variable-can-be-left-out" class="section level3">
-<h3>Check how well the output from the two primer sets align. Color_variable can be left out</h3>
+</div>
+<div id="check-how-well-the-output-from-the-two-primer-sets-align.-color_variable-can-be-left-out" class="section level4">
+<h4>Check how well the output from the two primer sets align. Color_variable can be left out</h4>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY29tcGFyZV9wcmltZXJfb3V0cHV0KGVwaWRvbWVfb2JqZWN0LGNvbG9yX3ZhcmlhYmxlID0gXCJzYW1wbGUudHlwZVwiKVxuXG5gYGAifQ== -->
@@ -276,15 +288,18 @@ sample estimates:
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
-<div id="combine-asvs-assigned-to-the-same-taxa" class="section level3">
-<h3>Combine ASVs assigned to the same taxa</h3>
+<div id="combine-asvs-assigned-to-the-same-taxa" class="section level4">
+<h4>Combine ASVs assigned to the same taxa</h4>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
-<div id="remove-low-count-samples-from-data-set.-only-include-samples-where-number-of-sequences-from-primer1-x-and-sequences-form-primer2-y" class="section level3">
-<h3>Remove low count samples from data set. (Only include samples where number of sequences from primer1 &gt;= x and sequences form primer2 &gt;= y)</h3>
+<div id="section" class="section level4">
+<h4></h4>
+</div>
+<div id="remove-low-count-samples-from-data-set.-only-include-samples-where-number-of-sequences-from-primer1-x-and-sequences-form-primer2-y" class="section level4">
+<h4>Remove low count samples from data set. (Only include samples where number of sequences from primer1 &gt;= x and sequences form primer2 &gt;= y)</h4>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZW9fZmlsdGVyZWQgPSBmaWx0ZXJfbG93Y291bnRfc2FtcGxlc19lcGlkb21lKGVvX0FTVl9jb21iaW5lZCw1MDAsNTAwKVxuXG5gYGAifQ== -->
@@ -297,8 +312,8 @@ sample estimates:
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
-<div id="assign-asvs-to-sts-on-a-per-sample-basis-and-make-barplot" class="section level3">
-<h3>Assign ASVs to STs on a per sample basis and make barplot</h3>
+<div id="assign-asvs-to-sts-on-a-per-sample-basis-and-make-barplot" class="section level4">
+<h4>Assign ASVs to STs on a per sample basis and make barplot</h4>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-plot-begin eyJjb25kaXRpb25zIjpbXSwiaGVpZ2h0Ijo0MzIuNjMyOSwic2l6ZV9iZWhhdmlvciI6MCwid2lkdGgiOjcwMH0= -->
@@ -306,11 +321,26 @@ sample estimates:
 <!-- rnb-plot-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
+</div>
+</div>
+<div id="data-stratification-based-on-metadata-variables-requires-metadata" class="section level3">
+<h3>Data stratification based on metadata variables (requires metadata)</h3>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZW9fY2xpbmljYWwgPSBwcnVuZV9ieV92YXJpYWJsZV9lcGlkb21lKGVwaWRvbWVfb2JqZWN0LFwic2FtcGxlLnR5cGVcIixjKFwiQ2xpbmljYWxcIikpXG5lb19tb2NrID0gcHJ1bmVfYnlfdmFyaWFibGVfZXBpZG9tZShlcGlkb21lX29iamVjdCxcInNhbXBsZS50eXBlXCIsYyhcIk1vY2sgY29tbXVuaXR5XCIpKVxuYGBgIn0= -->
+<pre class="r"><code>eo_clinical = prune_by_variable_epidome(epidome_object,&quot;sample.type&quot;,c(&quot;Clinical&quot;))
+eo_mock = prune_by_variable_epidome(epidome_object,&quot;sample.type&quot;,c(&quot;Mock community&quot;))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="make-pca-plots-and-color-by-given-variable-requires-metadata" class="section level3">
+<h3>make PCA plots and color by given variable (requires metadata)</h3>
 <!-- rnb-text-end -->
 </div>
 </div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiRXBpZG9tZSBzZXF1ZW5jZSBhbmFseXNpcyIKb3V0cHV0OgogIGh0bWxfbm90ZWJvb2s6CiAgICB0b2M6IHllcwphdXRob3I6ICJUaG9yIEJlY2ggSm9oYW5uZXNlbiwgU3RhdGVucyBTZXJ1bSBJbnN0aXR1dCIKLS0tCgojIyAqKkNsYXNzaWZpY2F0aW9uIG9mIGRhZGEyIGdlbmVyYXRlZCBBU1ZzLCBjcmVhdGlvbiBvZiBiYXJwbG90cywgUENBIHBsb3RzIGFuZCBtb3JlKioKCiMjIyBMb2FkIGZ1bmN0aW9ucwoKYGBge3J9CnNvdXJjZSgiaHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3NzaS1kay9lcGlkb21lL21hc3Rlci9zY3JpcHRzL2VwaWRvbWVfZnVuY3Rpb25zLlIiKQpgYGAKCiMjIyBSZWFkIGluIGRhdGEuIFJlcXVpcmVkIGRhdGEgaXM6CiMjIyBUYWJsZSBjb250YWluaW5nIGZyZXF1ZW5jaWVzIG9mIFNUcyBhbmQgYW1wbGljb25zIChmb3VuZCBpbiBnaXRodWIgcmVwbykKIyMjIFNlcXVlbmNlIGNvdW50IHRhYmxlcyBpbiBkYWRhMiBmb3JtYXQgY3JlYXRlZCBieSBydW5uaW5nIEFTVl9ibGFzdF9jbGFzc2lmaWNhdGlvbi5weSBvbiBkYWRhMiBBU1YgdGFibGUgb3V0cHV0CiMjIyBPUFRJT05BTDogbWV0YWRhdGEgdGFibGUuIFJvdyBuYW1lcyBtdXN0IG1hdGNoIGNvbHVtbiBuYW1lcyBpbiBkYWRhIG91dHB1dC4KYGBge3J9ClNUX2FtcGxpY29uX3RhYmxlID0gcmVhZC50YWJsZSgiREIvZXBpZG9tZV9TVF9hbXBsaWNvbl9mcmVxdWVuY2llcy50eHQiLHNlcCA9ICJcdCIpCgplcGkwMV90YWJsZSA9IHJlYWQudGFibGUoImV4YW1wbGVfZGF0YS8xOTA5MjBfcnVuMl9nMjE2X3Rlc3QuY3N2IixzZXAgPSAiOyIsaGVhZGVyPVRSVUUscm93Lm5hbWVzPTEpCmVwaTAyX3RhYmxlID0gcmVhZC50YWJsZSgiZXhhbXBsZV9kYXRhLzE5MDkyMF9ydW4yX3l5Y0hfdGVzdC5jc3YiLHNlcCA9ICI7IixoZWFkZXI9VFJVRSxyb3cubmFtZXM9MSkKbWV0YWRhdGFfdGFibGUgPSByZWFkLnRhYmxlKCJleGFtcGxlX2RhdGEvYXJ0aWNsZV9tZXRhZGF0YS50eHQiLGhlYWRlcj1UUlVFLHJvdy5uYW1lcz0xKQpgYGAKCgojIyMgU2V0dXAgb2JqZWN0IGZvciBkYXRhIGhhbmRsaW5nCmBgYHtyfQplcGlkb21lX29iamVjdCA9IHNldHVwX2VwaWRvbWVfb2JqZWN0KGVwaTAxX3RhYmxlLGVwaTAyX3RhYmxlLG1ldGFkYXRhX3RhYmxlID0gbWV0YWRhdGFfdGFibGUpCmBgYAoKIyMjIENoZWNrIGhvdyB3ZWxsIHRoZSBvdXRwdXQgZnJvbSB0aGUgdHdvIHByaW1lciBzZXRzIGFsaWduLiBDb2xvcl92YXJpYWJsZSBjYW4gYmUgbGVmdCBvdXQKYGBge3J9CmNvbXBhcmVfcHJpbWVyX291dHB1dChlcGlkb21lX29iamVjdCxjb2xvcl92YXJpYWJsZSA9ICJzYW1wbGUudHlwZSIpCmBgYAoKIyMjIENvbWJpbmUgQVNWcyBhc3NpZ25lZCB0byB0aGUgc2FtZSB0YXhhCmBgYHtyfQplb19BU1ZfY29tYmluZWQgPSBjb21iaW5lX0FTVnNfZXBpZG9tZShlcGlkb21lX29iamVjdCkKYGBgCgoKCiMjIyBSZW1vdmUgbG93IGNvdW50IHNhbXBsZXMgZnJvbSBkYXRhIHNldC4gKE9ubHkgaW5jbHVkZSBzYW1wbGVzIHdoZXJlIG51bWJlciBvZiBzZXF1ZW5jZXMgZnJvbSBwcmltZXIxID49IHggYW5kIHNlcXVlbmNlcyBmb3JtIHByaW1lcjIgPj0geSkKYGBge3J9CmVvX2ZpbHRlcmVkID0gZmlsdGVyX2xvd2NvdW50X3NhbXBsZXNfZXBpZG9tZShlb19BU1ZfY29tYmluZWQsNTAwLDUwMCkKYGBgCgojIyMgQXNzaWduIEFTVnMgdG8gU1RzIG9uIGEgcGVyIHNhbXBsZSBiYXNpcyBhbmQgbWFrZSBiYXJwbG90CmBgYHtyfQpjb3VudF90YWJsZSA9IGNsYXNzaWZ5X2VwaWRvbWUoZW9fZmlsdGVyZWQsU1RfYW1wbGljb25fdGFibGUpCnAgPSBtYWtlX2JhcnBsb3RfZXBpZG9tZShjb3VudF90YWJsZSxyZW9yZGVyPVRSVUUsbm9ybWFsaXplPVRSVUUpCnAKYGBgCgoKCgoK</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiRXBpZG9tZSBzZXF1ZW5jZSBhbmFseXNpcyIKb3V0cHV0OgogIGh0bWxfbm90ZWJvb2s6CiAgICB0b2M6IHllcwphdXRob3I6ICJUaG9yIEJlY2ggSm9oYW5uZXNlbiwgU3RhdGVucyBTZXJ1bSBJbnN0aXR1dCIKLS0tCgojIyAqKkNsYXNzaWZpY2F0aW9uIG9mIGRhZGEyIGdlbmVyYXRlZCBBU1ZzLCBjcmVhdGlvbiBvZiBiYXJwbG90cywgUENBIHBsb3RzIGFuZCBtb3JlKioKCiMjIyBMb2FkIGZ1bmN0aW9ucwoKYGBge3J9CnNvdXJjZSgiaHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3NzaS1kay9lcGlkb21lL21hc3Rlci9zY3JpcHRzL2VwaWRvbWVfZnVuY3Rpb25zLlIiKQpgYGAKCiMjIyMgUmVhZCBpbiBkYXRhLiBSZXF1aXJlZCBkYXRhIGlzOgojIyMjIyMgVGFibGUgY29udGFpbmluZyBmcmVxdWVuY2llcyBvZiBTVHMgYW5kIGFtcGxpY29ucyAoZm91bmQgaW4gZ2l0aHViIHJlcG8pCiMjIyMjIyBTZXF1ZW5jZSBjb3VudCB0YWJsZXMgaW4gZGFkYTIgZm9ybWF0IGNyZWF0ZWQgYnkgcnVubmluZyBBU1ZfYmxhc3RfY2xhc3NpZmljYXRpb24ucHkgb24gZGFkYTIgQVNWIHRhYmxlIG91dHB1dAojIyMjIyMgT1BUSU9OQUw6IG1ldGFkYXRhIHRhYmxlLiBSb3cgbmFtZXMgbXVzdCBtYXRjaCBjb2x1bW4gbmFtZXMgaW4gZGFkYSBvdXRwdXQuCmBgYHtyfQpTVF9hbXBsaWNvbl90YWJsZSA9IHJlYWQudGFibGUoIkRCL2VwaWRvbWVfU1RfYW1wbGljb25fZnJlcXVlbmNpZXMudHh0IixzZXAgPSAiXHQiKQoKZXBpMDFfdGFibGUgPSByZWFkLnRhYmxlKCJleGFtcGxlX2RhdGEvMTkwOTIwX3J1bjJfZzIxNl90ZXN0LmNzdiIsc2VwID0gIjsiLGhlYWRlcj1UUlVFLHJvdy5uYW1lcz0xKQplcGkwMl90YWJsZSA9IHJlYWQudGFibGUoImV4YW1wbGVfZGF0YS8xOTA5MjBfcnVuMl95eWNIX3Rlc3QuY3N2IixzZXAgPSAiOyIsaGVhZGVyPVRSVUUscm93Lm5hbWVzPTEpCm1ldGFkYXRhX3RhYmxlID0gcmVhZC50YWJsZSgiZXhhbXBsZV9kYXRhL2FydGljbGVfbWV0YWRhdGEudHh0IixoZWFkZXI9VFJVRSxyb3cubmFtZXM9MSkKYGBgCgoKIyMjIyBTZXR1cCBvYmplY3QgZm9yIGRhdGEgaGFuZGxpbmcKIyMjIyMgd2l0aG91dCBtZXRhZGF0YQpgYGB7cn0KZXBpZG9tZV9vYmplY3QgPSBzZXR1cF9lcGlkb21lX29iamVjdChlcGkwMV90YWJsZSxlcGkwMl90YWJsZSkKYGBgCgojIyMjIyB3aXRoIG1ldGFkYXRhCmBgYHtyfQplcGlkb21lX29iamVjdCA9IHNldHVwX2VwaWRvbWVfb2JqZWN0KGVwaTAxX3RhYmxlLGVwaTAyX3RhYmxlLG1ldGFkYXRhX3RhYmxlID0gbWV0YWRhdGFfdGFibGUpCmBgYAoKIyMjIyBDaGVjayBob3cgd2VsbCB0aGUgb3V0cHV0IGZyb20gdGhlIHR3byBwcmltZXIgc2V0cyBhbGlnbi4gQ29sb3JfdmFyaWFibGUgY2FuIGJlIGxlZnQgb3V0CmBgYHtyfQpjb21wYXJlX3ByaW1lcl9vdXRwdXQoZXBpZG9tZV9vYmplY3QsY29sb3JfdmFyaWFibGUgPSAic2FtcGxlLnR5cGUiKQpgYGAKCiMjIyMgQ29tYmluZSBBU1ZzIGFzc2lnbmVkIHRvIHRoZSBzYW1lIHRheGEKYGBge3J9CmVvX0FTVl9jb21iaW5lZCA9IGNvbWJpbmVfQVNWc19lcGlkb21lKGVwaWRvbWVfb2JqZWN0KQpgYGAKIyMjIyAgCgoKIyMjIyBSZW1vdmUgbG93IGNvdW50IHNhbXBsZXMgZnJvbSBkYXRhIHNldC4gKE9ubHkgaW5jbHVkZSBzYW1wbGVzIHdoZXJlIG51bWJlciBvZiBzZXF1ZW5jZXMgZnJvbSBwcmltZXIxID49IHggYW5kIHNlcXVlbmNlcyBmb3JtIHByaW1lcjIgPj0geSkKYGBge3J9CmVvX2ZpbHRlcmVkID0gZmlsdGVyX2xvd2NvdW50X3NhbXBsZXNfZXBpZG9tZShlb19BU1ZfY29tYmluZWQsNTAwLDUwMCkKYGBgCgojIyMjIEFzc2lnbiBBU1ZzIHRvIFNUcyBvbiBhIHBlciBzYW1wbGUgYmFzaXMgYW5kIG1ha2UgYmFycGxvdApgYGB7cn0KY291bnRfdGFibGUgPSBjbGFzc2lmeV9lcGlkb21lKGVvX2ZpbHRlcmVkLFNUX2FtcGxpY29uX3RhYmxlKQpwID0gbWFrZV9iYXJwbG90X2VwaWRvbWUoY291bnRfdGFibGUscmVvcmRlcj1UUlVFLG5vcm1hbGl6ZT1UUlVFKQpwCmBgYAoKCgojIyMgRGF0YSBzdHJhdGlmaWNhdGlvbiBiYXNlZCBvbiBtZXRhZGF0YSB2YXJpYWJsZXMgKHJlcXVpcmVzIG1ldGFkYXRhKQpgYGB7cn0KZW9fY2xpbmljYWwgPSBwcnVuZV9ieV92YXJpYWJsZV9lcGlkb21lKGVwaWRvbWVfb2JqZWN0LCJzYW1wbGUudHlwZSIsYygiQ2xpbmljYWwiKSkKZW9fbW9jayA9IHBydW5lX2J5X3ZhcmlhYmxlX2VwaWRvbWUoZXBpZG9tZV9vYmplY3QsInNhbXBsZS50eXBlIixjKCJNb2NrIGNvbW11bml0eSIpKQpgYGAKCiMjIyBtYWtlIFBDQSBwbG90cyBhbmQgY29sb3IgYnkgZ2l2ZW4gdmFyaWFibGUgKHJlcXVpcmVzIG1ldGFkYXRhKQoKCgoK</div>
 
 
 
