@@ -1,0 +1,62 @@
+---
+title: "Epidome sequence analysis"
+output:
+  html_notebook:
+    toc: yes
+author: "Thor Bech Johannesen, Statens Serum Institut"
+---
+
+## **Classification of dada2 generated ASVs, creation of barplots, PCA plots and more**
+
+### Load functions
+
+```{r}
+source("https://raw.githubusercontent.com/ssi-dk/epidome/master/scripts/epidome_functions.R")
+```
+
+### Read in data. Required data is:
+### Table containing frequencies of STs and amplicons (found in github repo)
+### Sequence count tables in dada2 format created by running ASV_blast_classification.py on dada2 ASV table output
+### OPTIONAL: metadata table. Row names must match column names in dada output.
+```{r}
+ST_amplicon_table = read.table("DB/epidome_ST_amplicon_frequencies.txt",sep = "\t")
+
+epi01_table = read.table("example_data/190920_run2_g216_test.csv",sep = ";",header=TRUE,row.names=1)
+epi02_table = read.table("example_data/190920_run2_yycH_test.csv",sep = ";",header=TRUE,row.names=1)
+metadata_table = read.table("example_data/article_metadata.txt",header=TRUE,row.names=1)
+```
+
+
+### Setup object for data handling
+```{r}
+epidome_object = setup_epidome_object(epi01_table,epi02_table,metadata_table = metadata_table)
+```
+
+### Check how well the output from the two primer sets align. Color_variable can be left out
+```{r}
+compare_primer_output(epidome_object,color_variable = "sample.type")
+```
+
+### Combine ASVs assigned to the same taxa
+```{r}
+eo_ASV_combined = combine_ASVs_epidome(epidome_object)
+```
+
+
+
+### Remove low count samples from data set. (Only include samples where number of sequences from primer1 >= x and sequences form primer2 >= y)
+```{r}
+eo_filtered = filter_lowcount_samples_epidome(eo_ASV_combined,500,500)
+```
+
+### Assign ASVs to STs on a per sample basis and make barplot
+```{r}
+count_table = classify_epidome(eo_filtered,ST_amplicon_table)
+p = make_barplot_epidome(count_table,reorder=TRUE,normalize=TRUE)
+p
+```
+
+
+
+
+
