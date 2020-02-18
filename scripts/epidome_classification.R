@@ -5,31 +5,16 @@ setwd("/Volumes/data/MPV/projects/git.repositories/epidome/")
 ST_amplicon_table = read.table("DB/epidome_ST_amplicon_frequencies.txt",sep = "\t")
 
 ### Load dada2 output for the two primers ###
-epi01_table = read.table("example_data/epi01_dada_output_article.csv",sep = ";",header=TRUE,row.names=1)
-epi02_table = read.table("example_data/epi02_dada_output_article.csv",sep = ";",header=TRUE,row.names=1)
-epi01_table = read.table("/Volumes/data/MPV/ANMC/Epidome_190920/EPI_dada2_output/EPI_G216_Bayes_190920_tax_and_counts_mb35.csv",sep = ";",header=TRUE,row.names=1)
-epi02_table = read.table("/Volumes/data/MPV/ANMC/Epidome_190920/EPI_dada2_output/EPI_yycH_Bayes_190920_tax_and_counts_mb35.csv",sep = ";",header=TRUE,row.names=1)
-epi01_table = read.table("example_data/190920_run1_G216_classified.csv",sep = ";",header=TRUE,row.names=1)
-epi02_table = read.table("example_data/190920_run1_yycH_classified.csv",sep = ";",header=TRUE,row.names=1)
-epi01_table = read.table("example_data/190920_run2_G216_classified.csv",sep = ";",header=TRUE,row.names=1)
-epi02_table = read.table("example_data/190920_run2_yycH_classified.csv",sep = ";",header=TRUE,row.names=1)
-epi01_table = read.table("example_data/190920_run2_G216_classified_997.csv",sep = ";",header=TRUE,row.names=1)
-epi02_table = read.table("example_data/190920_run2_yycH_classified_997.csv",sep = ";",header=TRUE,row.names=1)
-epi01_table = read.table("example_data/article_g216_reclassified.csv",sep = ";",header=TRUE,row.names=1)
-epi02_table = read.table("example_data/article_yycH_reclassified.csv",sep = ";",header=TRUE,row.names=1)
-epi01_table = read.table("example_data/article_G216_reclassified.csv",sep = ";",header=TRUE,row.names=1)
-epi02_table = read.table("example_data/article_yycH_reclassified.csv",sep = ";",header=TRUE,row.names=1)
-epi03_table = read.table("example_data/190920_run2_g216_test.csv",sep = ";",header=TRUE,row.names=1)
-epi04_table = read.table("example_data/190920_run2_yycH_test.csv",sep = ";",header=TRUE,row.names=1)
-epi01_table = read.table("example_data/article_g216_test.csv",sep = ";",header=TRUE,row.names=1)
-epi02_table = read.table("example_data/article_yycH_test.csv",sep = ";",header=TRUE,row.names=1)
-epi01_table = read.table("example_data/190920_run1_G216_classified_995p.csv",sep = ";",header=TRUE,row.names=1)
-epi02_table = read.table("example_data/190920_run1_yycH_classified_995p.csv",sep = ";",header=TRUE,row.names=1)
+epi01_mock_table = read.table("example_data/190920_run2_g216_test.csv",sep = ";",header=TRUE,row.names=1)
+epi02_mock_table = read.table("example_data/190920_run2_yycH_test.csv",sep = ";",header=TRUE,row.names=1)
+epi01_clinical_table = read.table("example_data/190920_run1_G216_classified_995p.csv",sep = ";",header=TRUE,row.names=1)
+epi02_clinical_table = read.table("example_data/190920_run1_yycH_classified_995p.csv",sep = ";",header=TRUE,row.names=1)
 
+epi01_table = combine_ASV_tables(epi01_mock_table,epi01_clinical_table)
+epi02_table = combine_ASV_tables(epi02_mock_table,epi02_clinical_table)
 
 ### Load metadata table
 metadata_table = read.table("example_data/article_metadata.txt",header=TRUE,row.names=1)
-metadata_table = read.table("../epidome_backup/sample_metadata.txt",header=TRUE,row.names=1)
 
 ### Setup an object for easy handling of epidome data
 epidome_object = setup_epidome_object(epi01_table,epi02_table,metadata_table = metadata_table)

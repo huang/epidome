@@ -6,6 +6,7 @@ output:
 author: "Thor Bech Johannesen, Statens Serum Institut"
 ---
 
+
 ## **Classification of dada2 generated ASVs, creation of barplots, PCA plots and more**
 
 ### Load functions
@@ -24,6 +25,17 @@ epi01_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/maste
 epi02_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/master/example_data/190920_run1_yycH_classified_995p.csv",sep = ";",header=TRUE,row.names=1)
 metadata_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/master/example_data/article_metadata.txt",header=TRUE,row.names=1)
 ```
+#### <br></br>
+#### If ASV data is spread over multiple dada runs they can be combined like this
+```{r}
+epi01_mock_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/master/example_data/190920_run2_g216_test.csv",sep = ";",header=TRUE,row.names=1)
+epi02_mock_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/master/example_data/190920_run2_yycH_test.csv",sep = ";",header=TRUE,row.names=1)
+epi01_clinical_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/master/example_data/190920_run1_G216_classified_995p.csv",sep = ";",header=TRUE,row.names=1)
+epi02_clinical_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/master/example_data/190920_run1_yycH_classified_995p.csv",sep = ";",header=TRUE,row.names=1)
+epi01_table = combine_ASV_tables(epi01_mock_table,epi01_clinical_table)
+epi02_table = combine_ASV_tables(epi02_mock_table,epi02_clinical_table)
+```
+
 
 #### <br></br>
 #### Setup object for data handling

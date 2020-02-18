@@ -357,6 +357,31 @@ prune_by_variable_epidome = function(epidome_object,variable_name,variable_value
   return(return_epidome_object)
 }
 
+
+combine_ASV_tables = function(ASV_table_1, ASV_table_2) {
+  IDs1 = colnames(ASV_table_1)[3:ncol(ASV_table_1)]
+  IDs2 = colnames(ASV_table_2)[3:ncol(ASV_table_2)]
+  table_names = c("ASV","Seq_number",IDs1,IDs2)
+  ASV_table_1$ASV = as.vector(ASV_table_1$ASV)
+  ASV_table_2$ASV = as.vector(ASV_table_2$ASV)
+  ASVs_1 = ASV_table_1$ASV
+  ASVs_2 = ASV_table_2$ASV
+  ASV1_match_index = which(ASVs_1 %in% ASVs_2)
+  ASVs_in_both = ASVs_1[ASV1_match_index]
+  ASV_table_1_match = ASV_table_1[ASV1_match_index,]
+  ASV_table_2_match = ASV_table_2[match(ASVs_in_both,ASVs_2),]
+  ASV_table_1_nomatch = ASV_table_1[-ASV1_match_index,]
+  ASV_table_2_nomatch = ASV_table_2[which(!ASVs_2 %in% ASVs_in_both),]
+  ASV_table_match_combined = cbind(ASV_table_1_match,ASV_table_2_match[,3:ncol(ASV_table_2_match)])
+  ASV_table_1_nomatch_2 = cbind(ASV_table_1_nomatch,matrix(0L,nrow=nrow(ASV_table_1_nomatch),ncol=(ncol(ASV_table_2_nomatch)-2)))
+  ASV_table_2_nomatch_2 = cbind(ASV_table_2_nomatch[,1:2],matrix(0L,nrow=nrow(ASV_table_2_nomatch),ncol=(ncol(ASV_table_1_nomatch)-2)),ASV_table_2_nomatch[,3:ncol(ASV_table_2_nomatch)])
+  colnames(ASV_table_match_combined) = table_names
+  colnames(ASV_table_1_nomatch_2) = table_names
+  colnames(ASV_table_2_nomatch_2) = table_names
+  ASV_table_combined = rbind(ASV_table_match_combined,ASV_table_1_nomatch_2,ASV_table_2_nomatch_2)
+  return(ASV_table_combined)
+}
+
 dist_comparison = function(dist_object,group_factor) {
   group_levels = levels(group_factor)
   group_vector = as.vector(group_factor)
