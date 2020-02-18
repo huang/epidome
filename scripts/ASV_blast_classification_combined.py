@@ -2,6 +2,31 @@
 
 import os
 import sys
+import argparse
+
+def set_up_argparse():
+	parser = argparse.ArgumentParser(description="""
+	**
+	Classify dada ASVs using blastn similarity.
+	Requires dada output for both primer pairs and reference fasta files for both.
+	""")
+
+	parser.add_argument('--p1_file', '-p1', help='Dada ASV output for primer 1 (g216)')
+	parser.add_argument('--p2_file', '-p2', help='Dada ASV output for primer 2 (yycH)')
+	parser.add_argument('--p1_ref', '-p1_ref', help='Reference fasta for primer 1 (g216)')
+	parser.add_argument('--p2_ref', '-p2_ref', help='Reference fasta for primer 2 (yycH)')
+	parser.add_argument('--pident_req', '-pident', help='Minimum percent identity to classify ASV',default='99.5')
+	opts = parser.parse_args()
+	
+	return opts
+
+def check_if_flag_is_provided(flag,name,option):
+	if flag is None:
+		print("Checking if", name, "is provided...No!")
+		print("You have not provided the", name,"!", "use the",option,"option to provide the", name)
+		sys.exit(1)
+	else:
+		print("Checking if", name, "is provided...Yes")
 
 
 def setup_fasta(dada_csv_file,fasta_output_file):
@@ -114,15 +139,36 @@ def print_ASV_count_table(seqs, IDs, counts, ASV_to_ref,new_dada_output_file):
 	o.write(printline)
 	o.close()
 
-dada_csv_file = sys.argv[1]
-fasta_output_file = sys.argv[2]
-reference_fasta = sys.argv[3]
-blast_output_file = sys.argv[4]
-new_dada_output_file = sys.argv[5]
-pident_req = sys.argv[6]
 
-seqs, IDs, counts = load_dada_output(dada_csv_file)
-print_fasta(seqs,fasta_output_file)
-run_blast(fasta_output_file,reference_fasta,blast_output_file,pident_req)
-ASV_to_ref = parse_blast(blast_output_file,pident_req)
-print_ASV_count_table(seqs, IDs, counts, ASV_to_ref,new_dada_output_file)
+def main(opts):
+	check_if_flag_is_provided(opts.p1_file,"primer 1 (g216)","-p1")
+	check_if_flag_is_provided(opts.p2_file,"primer 2 (yycH)","-p2")
+	check_if_flag_is_provided(opts.p1_ref,"primer 1 reference fasta (g216)","-p1_ref")
+	check_if_flag_is_provided(opts.p2_ref,"primer 2 reference fasta (yycH)","-p2_ref")
+	#outdir = os.path.split(opts.p1_file)[0]
+	p1_fasta = opts.p1_file+'.ASV_seqs.fasta'
+	p2_fasta = opts.p2_file+'.ASV_seqs.fasta'
+	p1_blast = opts.p1_file+'.ASV_blast.txt'
+	p2_blast = opts.p2_file+'.ASV_blast.txt'
+	p1_out = opts.p1_file+'.classified.csv'
+	p2_out = opts.p2_file+'.classified.csv'
+	print("Classifying primer 1 sequences (g216)")
+	p1_seqs,p1_IDs,p1_counts = load_dada_output(opts.p1_file)
+	print_fasta(p1_seqs,p1_fasta)
+	run_blast(p1_fasta,opts.p1_ref,p1_blast,opts.pident_req)
+	ASV_to_ref_p1 = parse_blast(p1_blast,opts.pident_req)
+	print_ASV_count_table(p1_seqs,p1_IDs,p1_counts,ASV_to_ref_p1,p1_out)
+	print("Classifying primer 2 sequences (yycH)")
+	p2_seqs,p2_IDs,p2_counts = load_dada_output(opts.p2_file)
+	print_fasta(p2_seqs,p2_fasta)
+	run_blast(p2_fasta,opts.p2_ref,p2_blast,opts.pident_req)
+	ASV_to_ref_p2 = parse_blast(p2_blast,opts.pident_req)
+	print_ASV_count_table(p2_seqs,p2_IDs,p2_counts,ASV_to_ref_p2,p2_out)
+	print("Classified primer 1 sequences printed to "+p1_out)
+	print("Classified primer 2 sequences printed to "+p2_out)
+	return;
+
+
+if __name__ == '__main__':
+	opts = set_up_argparse()
+	main(opts)

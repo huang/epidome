@@ -5,10 +5,10 @@ setwd("/Volumes/data/MPV/projects/git.repositories/epidome/")
 ST_amplicon_table = read.table("DB/epidome_ST_amplicon_frequencies.txt",sep = "\t")
 
 ### Load dada2 output for the two primers ###
-epi01_mock_table = read.table("example_data/190920_run2_g216_test.csv",sep = ";",header=TRUE,row.names=1)
-epi02_mock_table = read.table("example_data/190920_run2_yycH_test.csv",sep = ";",header=TRUE,row.names=1)
-epi01_clinical_table = read.table("example_data/190920_run1_G216_classified_995p.csv",sep = ";",header=TRUE,row.names=1)
-epi02_clinical_table = read.table("example_data/190920_run1_yycH_classified_995p.csv",sep = ";",header=TRUE,row.names=1)
+epi01_mock_table = read.table("example_data/190920_run2_G216_seqtab_from_dada2.csv.classified.csv",sep = ";",header=TRUE,row.names=1)
+epi02_mock_table = read.table("example_data/190920_run2_yycH_seqtab_from_dada2.csv.classified.csv",sep = ";",header=TRUE,row.names=1)
+epi01_clinical_table = read.table("example_data/190920_run1_G216_seqtab_from_dada2.csv.classified.csv",sep = ";",header=TRUE,row.names=1)
+epi02_clinical_table = read.table("example_data/190920_run1_yycH_seqtab_from_dada2.csv.classified.csv",sep = ";",header=TRUE,row.names=1)
 
 epi01_table = combine_ASV_tables(epi01_mock_table,epi01_clinical_table)
 epi02_table = combine_ASV_tables(epi02_mock_table,epi02_clinical_table)

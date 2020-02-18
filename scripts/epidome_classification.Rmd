@@ -28,10 +28,10 @@ metadata_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/ma
 #### <br></br>
 #### If ASV data is spread over multiple dada runs they can be combined like this
 ```{r}
-epi01_mock_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/master/example_data/190920_run2_g216_test.csv",sep = ";",header=TRUE,row.names=1)
-epi02_mock_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/master/example_data/190920_run2_yycH_test.csv",sep = ";",header=TRUE,row.names=1)
-epi01_clinical_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/master/example_data/190920_run1_G216_classified_995p.csv",sep = ";",header=TRUE,row.names=1)
-epi02_clinical_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/master/example_data/190920_run1_yycH_classified_995p.csv",sep = ";",header=TRUE,row.names=1)
+epi01_mock_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/master/example_data/190920_run2_G216_seqtab_from_dada2.csv.classified.csv",sep = ";",header=TRUE,row.names=1)
+epi02_mock_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/master/example_data/190920_run2_yycH_seqtab_from_dada2.csv.classified.csv",sep = ";",header=TRUE,row.names=1)
+epi01_clinical_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/master/example_data/190920_run1_G216_seqtab_from_dada2.csv.classified.csv",sep = ";",header=TRUE,row.names=1)
+epi02_clinical_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/master/example_data/190920_run1_yycH_seqtab_from_dada2.csv.classified.csv",sep = ";",header=TRUE,row.names=1)
 epi01_table = combine_ASV_tables(epi01_mock_table,epi01_clinical_table)
 epi02_table = combine_ASV_tables(epi02_mock_table,epi02_clinical_table)
 ```
@@ -75,7 +75,7 @@ eo_filtered = filter_lowcount_samples_epidome(eo_ASV_combined,500,500)
 ##### Assign ASVs to STs on a per sample basis and make barplot
 ```{r}
 count_table = classify_epidome(eo_filtered,ST_amplicon_table)
-p = make_barplot_epidome(count_table,reorder=TRUE,normalize=TRUE)
+p = make_barplot_epidome(count_table,reorder=FALSE,normalize=TRUE)
 p
 ```
 
@@ -94,8 +94,6 @@ eo_mock = prune_by_variable_epidome(epidome_object,"sample.type",c("Mock communi
 ##### Normalize data to percent
 ```{r}
 epidome_object_clinical_norm = normalize_epidome_object(eo_clinical) ### Normalize counts to percent
-
-
 ```
 
 ##### Color by patient
