@@ -57,7 +57,7 @@ epidome_object_mock = prune_by_variable_epidome(epidome_object,"sample.type",c("
 
 ### make barplot of "clinical" samples only 
 epidome_object_clinical_ASV_combined = prune_by_variable_epidome(epidome_ASV_combined,"sample.type",c("Clinical"))
-count_table_clinical = classify_epidome_3(epidome_object_clinical_ASV_combined,ST_amplicon_table)
+count_table_clinical = classify_epidome(epidome_object_clinical_ASV_combined,ST_amplicon_table)
 p = make_barplot_epidome(count_table_clinical,reorder=FALSE,normalize=TRUE)
 p + ggtitle("Distribution of S. epidermidis sequence types in nose and skin samples")
 
@@ -67,33 +67,6 @@ count_table_mock = classify_epidome(epidome_object_mock_ASV_combined,ST_amplicon
 p = make_barplot_epidome(count_table_mock,reorder=FALSE,normalize=TRUE)
 p + ggtitle("Distribution of S. epidermidis sequence types in nose and skin samples")
 
-count_table_mock = classify_epidome_2(epidome_object_mock_ASV_combined,ST_amplicon_table)
-p = make_barplot_epidome(count_table_mock,reorder=FALSE,normalize=TRUE)
-p + ggtitle("Distribution of S. epidermidis sequence types in nose and skin samples")
-
-count_table_mock = classify_epidome_3(epidome_object_mock_ASV_combined,ST_amplicon_table)
-p = make_barplot_epidome(count_table_mock,reorder=FALSE,normalize=TRUE)
-p + ggtitle("Distribution of S. epidermidis sequence types in nose and skin samples")
-
-
-count_table_mock = classify_epidome_4(epidome_object_mock_ASV_combined,ST_amplicon_table)
-p = make_barplot_epidome(count_table_mock,reorder=FALSE,normalize=TRUE)
-p + ggtitle("Distribution of S. epidermidis sequence types in nose and skin samples")
-
-count_table_mock = classify_epidome_4(eo2,ST_amplicon_table)
-p = make_barplot_epidome(count_table_mock,reorder=FALSE,normalize=TRUE)
-p + ggtitle("Distribution of S. epidermidis sequence types in nose and skin samples")
-
-
-epidome_object_clinical_ASV_combined = prune_by_variable_epidome(epidome_ASV_combined,"sample.type",c("Clinical"))
-count_table_clinical = classify_epidome_4(epidome_object_clinical_ASV_combined,ST_amplicon_table)
-p = make_barplot_epidome(count_table_clinical,reorder=FALSE,normalize=TRUE)
-p
-
-epidome_object_clinical_ASV_combined = prune_by_variable_epidome(epidome_ASV_combined,"sample.type",c("Clinical"))
-count_table_clinical = classify_epidome_3(epidome_object_clinical_ASV_combined,ST_amplicon_table)
-p = make_barplot_epidome(count_table_clinical,reorder=FALSE,normalize=TRUE)
-p
 
 
 ### make PCA plots of clinical samples. Color according to variable in metadata and (optional) indicate colors to use. Set plot_ellipse=FALSE to not plot ellipse ###

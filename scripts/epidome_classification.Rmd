@@ -21,8 +21,8 @@ source("https://raw.githubusercontent.com/ssi-dk/epidome/master/scripts/epidome_
 ###### OPTIONAL: metadata table. Row names must match column names in dada output.
 ```{r}
 ST_amplicon_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/master/DB/epidome_ST_amplicon_frequencies.txt",sep = "\t")
-epi01_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/master/example_data/190920_run1_G216_classified_995p.csv",sep = ";",header=TRUE,row.names=1)
-epi02_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/master/example_data/190920_run1_yycH_classified_995p.csv",sep = ";",header=TRUE,row.names=1)
+epi01_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/master/example_data/190920_run1_G216_seqtab_from_dada2.csv.classified.csv",sep = ";",header=TRUE,row.names=1)
+epi02_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/master/example_data/190920_run1_yycH_seqtab_from_dada2.csv.classified.csv",sep = ";",header=TRUE,row.names=1)
 metadata_table = read.table("https://raw.githubusercontent.com/ssi-dk/epidome/master/example_data/article_metadata.txt",header=TRUE,row.names=1)
 ```
 #### <br></br>
