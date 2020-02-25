@@ -102,7 +102,7 @@ melt_df$ST = factor(melt_df$ST, levels=ST_levels)
 ST = unlist(lapply(ST_levels, function(x) if (x %in% color_table$ST) { as.vector(color_table$hex.code)[which(color_table$ST==x)] } else {"Missing"}))
 ST[which(ST=="Missing")] = c("#f5ed5d","#e8b099")
 
-p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = ST) + theme(axis.text.x = element_text(angle = 90,hjust = 0.95))
+p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = ST) + theme_bw() + ylab(ylabel) + theme(axis.text.x = element_blank()) + xlab("")
 barplot_mock_fixedcol = p
 
 
@@ -127,7 +127,7 @@ melt_df$ST = factor(melt_df$ST, levels=ST_levels)
 ST = unlist(lapply(ST_levels, function(x) if (x %in% color_table$ST) { as.vector(color_table$hex.code)[which(color_table$ST==x)] } else {"Missing"}))
 ST[which(ST=="Missing")] = c("#a1984d","#ba291c","#89c981")
 
-p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = ST) + theme(axis.text.x = element_text(angle = 90,hjust = 0.95))
+p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = ST) + theme_bw() + ylab(ylabel) + theme(axis.text.x = element_blank()) + xlab("")
 barplot_clinical_fixedcol = p
 
 

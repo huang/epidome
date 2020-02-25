@@ -277,7 +277,7 @@ make_barplot_epidome = function(count_table, reorder = FALSE, normalize = TRUE) 
     melt_df$Sample = factor(as.vector(melt_df$Sample), levels = fit$labels[fit$order])
   }
   melt_df$ST = factor(as.vector(melt_df$ST),levels = ST_levels_ordered)
-  p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = RColorBrewer::brewer.pal(12,"Paired")) + theme(axis.text.x = element_text(angle = 90,hjust = 0.95)) + ylab(ylabel)
+  p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = RColorBrewer::brewer.pal(12,"Paired")) + theme(axis.text.x = element_text(angle = 90,hjust = 0.95)) + ylab(ylabel) + theme_bw()
   return(p)
 }
 
