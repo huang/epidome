@@ -5,13 +5,9 @@ setwd("/Volumes/data/MPV/projects/git.repositories/epidome/")
 ST_amplicon_table = read.table("DB/epidome_ST_amplicon_frequencies.txt",sep = "\t")
 
 ### Load dada2 output for the two primers ###
-epi01_mock_table = read.table("example_data/190920_run2_G216_seqtab_from_dada2.csv.classified.csv",sep = ";",header=TRUE,row.names=1)
-epi02_mock_table = read.table("example_data/190920_run2_yycH_seqtab_from_dada2.csv.classified.csv",sep = ";",header=TRUE,row.names=1)
-epi01_clinical_table = read.table("example_data/190920_run1_G216_seqtab_from_dada2.csv.classified.csv",sep = ";",header=TRUE,row.names=1)
-epi02_clinical_table = read.table("example_data/190920_run1_yycH_seqtab_from_dada2.csv.classified.csv",sep = ";",header=TRUE,row.names=1)
 
-epi01_table = combine_ASV_tables(epi01_mock_table,epi01_clinical_table)
-epi02_table = combine_ASV_tables(epi02_mock_table,epi02_clinical_table)
+epi01_table = read.table("example_data/190920_run1_and_2_G216_seqtab_nochim.csv.classified.csv",sep = ";",header=TRUE,row.names=1)
+epi02_table = read.table("example_data/190920_run1_and_2_yycH_seqtab_nochim.csv.classified.csv",sep = ";",header=TRUE,row.names=1)
 
 ### Load metadata table
 metadata_table = read.table("example_data/article_metadata.txt",header=TRUE,row.names=1)
@@ -62,7 +58,7 @@ labels = c(paste0("PC1 [",sprintf("%.1f",explvar(pca)[1]),"%]"),paste0("PC2, [",
 pca_pt = ggplot(as.data.frame(pca$x),aes(x=PC1,y=PC2,color = color_variable_factor,shape=sample_site)) + labs(color = color_variable) + geom_point(size=2, alpha=1) + scale_colour_manual(values = color_vector) + xlab(labels[1]) + ylab(labels[2]) + theme_bw()+ scale_shape_manual(values=c(16,17))
 
 
-
+library(gridExtra)
 grid.arrange(pca_site,pca_pt,ncol=2)
 
 

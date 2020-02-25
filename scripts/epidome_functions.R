@@ -158,7 +158,7 @@ classify_epidome = function(epidome_object,ST_amplicon_table,strict_classifier=F
     p1_seq_split = strsplit(p1_seq,',')[[1]]
     if (length(p1_seq_split)>1) {
       possible_STs = as.vector(ST_amplicon_table$ST)[which(ST_amplicon_table$epi01_ASV %in% p1_seq_split)]
-      if (length(possible_STs==1)) {
+      if (length(possible_STs)==1) {
         p1_seq = p1_seq_split[1]
       } else {
         p1_seq = "Unclassified"

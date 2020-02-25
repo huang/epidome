@@ -13,6 +13,10 @@ epi02_clinical_table = read.table("example_data/190920_run1_yycH_seqtab_from_dad
 epi01_table = combine_ASV_tables(epi01_mock_table,epi01_clinical_table)
 epi02_table = combine_ASV_tables(epi02_mock_table,epi02_clinical_table)
 
+
+epi01_table = read.table("example_data/190920_run1_and_2_G216_seqtab_nochim.csv.classified.csv",sep = ";",header=TRUE,row.names=1)
+epi02_table = read.table("example_data/190920_run1_and_2_yycH_seqtab_nochim.csv.classified.csv",sep = ";",header=TRUE,row.names=1)
+
 ### Load metadata table
 metadata_table = read.table("example_data/article_metadata.txt",header=TRUE,row.names=1)
 
@@ -59,13 +63,13 @@ epidome_object_mock = prune_by_variable_epidome(epidome_object,"sample.type",c("
 epidome_object_clinical_ASV_combined = prune_by_variable_epidome(epidome_ASV_combined,"sample.type",c("Clinical"))
 count_table_clinical = classify_epidome(epidome_object_clinical_ASV_combined,ST_amplicon_table)
 p = make_barplot_epidome(count_table_clinical,reorder=FALSE,normalize=TRUE)
-p + ggtitle("Distribution of S. epidermidis sequence types in nose and skin samples")
+p + ggtitle("Distribution of S. epidermidis sequence types in nose and skin samples") + theme(axis.text.x = element_text(angle = 90))
 
 ### make barplot of mock samples only 
 epidome_object_mock_ASV_combined = prune_by_variable_epidome(epidome_ASV_combined,"sample.type",c("Mock community"))
 count_table_mock = classify_epidome(epidome_object_mock_ASV_combined,ST_amplicon_table)
 p = make_barplot_epidome(count_table_mock,reorder=FALSE,normalize=TRUE)
-p + ggtitle("Distribution of S. epidermidis sequence types in nose and skin samples")
+p + ggtitle("Distribution of S. epidermidis sequence types in nose and skin samples") + theme(axis.text.x = element_blank())
 
 
 
