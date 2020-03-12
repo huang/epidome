@@ -98,7 +98,7 @@ melt_df$ST = factor(melt_df$ST, levels=ST_levels)
 ST = unlist(lapply(ST_levels, function(x) if (x %in% color_table$ST) { as.vector(color_table$hex.code)[which(color_table$ST==x)] } else {"Missing"}))
 ST[which(ST=="Missing")] = c("#f5ed5d","#e8b099")
 
-p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = ST) + theme_bw() + ylab(ylabel) + theme(axis.text.x = element_blank()) + xlab("")
+p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = ST) + theme_bw()  + theme(axis.text.x = element_blank()) + ylab("Relative abundance (percent)") +
 barplot_mock_fixedcol = p
 
 
@@ -121,11 +121,12 @@ ST_numbers = mock_STs[which(!mock_STs %in% c("Unclassified","Novel"))]
 ST_levels = c(ST_numbers[order(as.numeric(ST_numbers))],c("Novel","Unclassified","Other"))
 melt_df$ST = factor(melt_df$ST, levels=ST_levels)
 ST = unlist(lapply(ST_levels, function(x) if (x %in% color_table$ST) { as.vector(color_table$hex.code)[which(color_table$ST==x)] } else {"Missing"}))
-ST[which(ST=="Missing")] = c("#a1984d","#ba291c","#89c981")
+#ST[which(ST=="Missing")] = c("#a1984d","#ba291c","#89c981")
+ST[which(ST=="Missing")] = c("#a1984d","#ba291c")
 
-p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = ST) + theme_bw() + ylab(ylabel) + theme(axis.text.x = element_blank()) + xlab("")
+p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = ST) + theme_bw() + theme(axis.text.x = element_text(angle = 90)) + ylab("Relative abundance (percent)") + xlab("")
 barplot_clinical_fixedcol = p
-
+barplot_clinical_fixedcol
 
 
 
