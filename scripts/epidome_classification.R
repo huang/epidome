@@ -18,7 +18,7 @@ epi01_table = read.table("example_data/190920_run1_and_2_G216_seqtab_nochim.csv.
 epi02_table = read.table("example_data/190920_run1_and_2_yycH_seqtab_nochim.csv.classified.csv",sep = ";",header=TRUE,row.names=1)
 
 ### Load metadata table
-metadata_table = read.table("example_data/article_metadata.txt",header=TRUE,row.names=1)
+metadata_table = read.table("example_data/article_metadata_with_qPCR.txt",header=TRUE,row.names=1)
 
 ### Setup an object for easy handling of epidome data
 epidome_object = setup_epidome_object(epi01_table,epi02_table,metadata_table = metadata_table)
@@ -29,6 +29,9 @@ compare_primer_output(epidome_object)
 compare_primer_output(epidome_object,"sample.type")
 compare_primer_output(epidome_object,"patient.sample.site")
 
+plot(colSums(epidome_object$p1_table),epidome_object$metadata$qPCR)
+plot(colSums(epidome_object$p2_table),epidome_object$metadata$qPCR)
+
 
 
 #### Data manipulation of various sorts ####
@@ -38,7 +41,6 @@ epidome_ASV_combined = combine_ASVs_epidome(epidome_object)
 
 ### Filter lowcount samples (removes any sample that has less than X sequences from one of the two primer sets, here 500) ###
 epidome_filtered_samples = filter_lowcount_samples_epidome(epidome_object,500,500)
-
 
 #### Plots and figures ###
 
@@ -69,7 +71,7 @@ p + ggtitle("Distribution of S. epidermidis sequence types in nose and skin samp
 epidome_object_mock_ASV_combined = prune_by_variable_epidome(epidome_ASV_combined,"sample.type",c("Mock community"))
 count_table_mock = classify_epidome(epidome_object_mock_ASV_combined,ST_amplicon_table)
 p = make_barplot_epidome(count_table_mock,reorder=FALSE,normalize=TRUE)
-p + ggtitle("Distribution of S. epidermidis sequence types in nose and skin samples") + theme(axis.text.x = element_blank())
+p + ggtitle("Distribution of S. epidermidis sequence types in mock communities") + theme(axis.text.x = element_blank())
 
 
 
@@ -82,6 +84,16 @@ PCA_sample_site_colored + ggtitle("PCA plot of nose and skin samples colored by 
 
 
 
+norm_combined = rbind(epidome_object_clinical_norm$p1_table,epidome_object_clinical_norm$p2_table)
+m = epidome_object_clinical_norm$metadata
+idx = grep("_1",m$sample.ID)
+norm_combined_uniq = norm_combined[,idx]
+m = m[idx,]
+
+dist = dist(t(norm_combined_uniq))
+anosim(dist,m$sample.site,1000)
+
+
 ### Other stuff
 
 
@@ -92,3 +104,17 @@ epidome_filtered_ASVs = filter_lowcount_ASVs_epidome(epidome_object,percent_thre
 epidome_object_normalized = normalize_epidome_object(epidome_filtered_samples)
 
 
+eo_clin_norm = normalize_epidome_object(epidome_object_clinical_ASV_combined)
+count_table_clinical_norm = classify_epidome(eo_clin_norm,ST_amplicon_table)
+plot(sort(bin_mat[which(bin_mat>0)]))
+bin_mat = as.matrix(count_table_clinical_norm)
+plot(sort(bin_mat[which(bin_mat>0)]))
+sort(bin_mat[which(bin_mat>0)])
+sort(as.vector(bin_mat[which(bin_mat>0)]))[1:100]
+plot(sort(as.vector(bin_mat[which(bin_mat>0)]))[1:300])
+
+p_theshold = 3
+bin_mat[bin_mat<p_theshold] = 0
+bin_mat[bin_mat>=p_theshold] = 1
+sort(colSums(bin_mat))
+mean(colSums(bin_mat))

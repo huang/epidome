@@ -10,7 +10,7 @@ epi01_table = read.table("example_data/190920_run1_and_2_G216_seqtab_nochim.csv.
 epi02_table = read.table("example_data/190920_run1_and_2_yycH_seqtab_nochim.csv.classified.csv",sep = ";",header=TRUE,row.names=1)
 
 ### Load metadata table
-metadata_table = read.table("example_data/article_metadata.txt",header=TRUE,row.names=1)
+metadata_table = read.table("example_data/article_metadata_with_qPCR.txt",header=TRUE,row.names=1)
 
 ### Setup an object for easy handling of epidome data
 epidome_object = setup_epidome_object(epi01_table,epi02_table,metadata_table = metadata_table)
@@ -19,7 +19,7 @@ epidome_object = setup_epidome_object(epi01_table,epi02_table,metadata_table = m
 ### Check if number of sequences from each primer for each samples match up approximately ###
 compare_primer_output(epidome_object)
 compare_primer_output(epidome_object,"sample.type")
-compare_primer_output(epidome_object,"patient.sample.site")
+
 
 
 ### Filter lowcount samples (removes any sample that has less than X sequences from one of the two primer sets, here 500) ###
@@ -30,6 +30,12 @@ epidome_ASV_combined = combine_ASVs_epidome(epidome_filtered_samples)
 
 epidome_object_mock = prune_by_variable_epidome(epidome_ASV_combined,"sample.type",c("Mock community"))
 epidome_object_clinical = prune_by_variable_epidome(epidome_ASV_combined,"sample.type",c("Clinical"))
+
+p = compare_primer_output(epidome_object_clinical)
+
+p = compare_primer_output(epidome_object_clinical,"patient.ID")
+ggplot(p$df,aes(x=p1_counts,y=p2_counts,color=patient.ID,shape=sample.site)) + geom_point(size=2) + scale_shape_manual(values=c(16,17)) + scale_color_manual(values = RColorBrewer::brewer.pal(12,"Paired")[c(1:10,12)])
+
 
 
 pt_site_tbl = table(epidome_object_clinical$metada$patient.sample.site)
@@ -53,7 +59,7 @@ color_variable_factor = m[,which(epidome_clinical_pruned_norm$meta_variables==co
 data_combined = rbind(epidome_clinical_pruned_norm$p1_table,epidome_clinical_pruned_norm$p2_table)
 pca = prcomp(t(data_combined))
 plot_df = data.frame(pca$x)
-color_vector = setup_colors(levels(color_variable_factor),colors)
+color_vector = setup_colors(levels(color_variable_factor),RColorBrewer::brewer.pal(12,"Paired")[c(1:10,12)])
 labels = c(paste0("PC1 [",sprintf("%.1f",explvar(pca)[1]),"%]"),paste0("PC2, [",sprintf("%.1f",explvar(pca)[2]),"%]"))
 pca_pt = ggplot(as.data.frame(pca$x),aes(x=PC1,y=PC2,color = color_variable_factor,shape=sample_site)) + labs(color = color_variable) + geom_point(size=2, alpha=1) + scale_colour_manual(values = color_vector) + xlab(labels[1]) + ylab(labels[2]) + theme_bw()+ scale_shape_manual(values=c(16,17))
 
@@ -98,8 +104,10 @@ melt_df$ST = factor(melt_df$ST, levels=ST_levels)
 ST = unlist(lapply(ST_levels, function(x) if (x %in% color_table$ST) { as.vector(color_table$hex.code)[which(color_table$ST==x)] } else {"Missing"}))
 ST[which(ST=="Missing")] = c("#f5ed5d","#e8b099")
 
-p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = ST) + theme_bw()  + theme(axis.text.x = element_blank()) + ylab("Relative abundance (percent)") +
+p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = ST) + theme_classic()  + scale_y_continuous(limits = c(0,102), expand = c(0, 0)) + ylab("Relative abundance (percent)") + 
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), panel.grid.major.y = element_line( size=.1, color="black" ), panel.grid.minor.y = element_line( size=.1, color="black" ),axis.ticks.length.x = unit(0,"mm"))
 barplot_mock_fixedcol = p
+p
 
 
 #### clinical mock with article colors
@@ -124,9 +132,19 @@ ST = unlist(lapply(ST_levels, function(x) if (x %in% color_table$ST) { as.vector
 #ST[which(ST=="Missing")] = c("#a1984d","#ba291c","#89c981")
 ST[which(ST=="Missing")] = c("#a1984d","#ba291c")
 
-p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = ST) + theme_bw() + theme(axis.text.x = element_text(angle = 90)) + ylab("Relative abundance (percent)") + xlab("")
+p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = ST) + theme_classic()  + scale_y_continuous(limits = c(0,102), expand = c(0, 0)) + ylab("Relative abundance (percent)") + xlab("") + 
+  theme(axis.text.x = element_text(angle = 90), axis.ticks.x = element_blank(), panel.grid.major.y = element_line( size=.1, color="black" ), panel.grid.minor.y = element_line( size=.1, color="black" ),axis.ticks.length.x = unit(0,"mm"))
 barplot_clinical_fixedcol = p
 barplot_clinical_fixedcol
 
+### barplot with qPCR values
 
+df = epidome_object_clinical_pruned$metadata
+df$qPCR_log = log(df$qPCR+1,10) 
+p = ggplot(df,aes(x=sample.ID,y=qPCR)) + geom_bar(stat="identity") + theme_classic() + scale_y_log10(expand = c(0, 0)) + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) + ylab("") +xlab("")
+p
 
+df = df[!duplicated(df$patient.sample.site),]
+df$qPCR_log = log(df$qPCR+1,10) 
+p = ggplot(df,aes(x=sample.ID,y=qPCR)) + geom_bar(stat="identity") + theme_classic() + scale_y_log10(expand = c(0, 0)) + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) + ylab("") +xlab("")
+p

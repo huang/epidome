@@ -1,0 +1,57 @@
+"sample.ID"	"patient.ID"	"sample.site"	"sample.type"	"patient.sample.site"	"qPCR"
+"P01_skin_2"	"P01_skin_2"	"P01"	"skin"	"Clinical"	"P01_skin"	NA
+"P01_skin_1"	"P01_skin_1"	"P01"	"skin"	"Clinical"	"P01_skin"	NA
+"P01_nose_2"	"P01_nose_2"	"P01"	"nose"	"Clinical"	"P01_nose"	32
+"P01_nose_1"	"P01_nose_1"	"P01"	"nose"	"Clinical"	"P01_nose"	32
+"P02_skin_2"	"P02_skin_2"	"P02"	"skin"	"Clinical"	"P02_skin"	5
+"P02_skin_1"	"P02_skin_1"	"P02"	"skin"	"Clinical"	"P02_skin"	5
+"P02_nose_2"	"P02_nose_2"	"P02"	"nose"	"Clinical"	"P02_nose"	50
+"P02_nose_1"	"P02_nose_1"	"P02"	"nose"	"Clinical"	"P02_nose"	50
+"Even_mock_2"	"Even_mock_2"	"Even"	"Even mock"	"Mock community"	"Even_Even mock"	NA
+"Even_mock_1"	"Even_mock_1"	"Even"	"Even mock"	"Mock community"	"Even_Even mock"	NA
+"P03_skin_2"	"P03_skin_2"	"P03"	"skin"	"Clinical"	"P03_skin"	2
+"P03_skin_1"	"P03_skin_1"	"P03"	"skin"	"Clinical"	"P03_skin"	2
+"P03_nose_2"	"P03_nose_2"	"P03"	"nose"	"Clinical"	"P03_nose"	15
+"P03_nose_1"	"P03_nose_1"	"P03"	"nose"	"Clinical"	"P03_nose"	15
+"P04_skin_2"	"P04_skin_2"	"P04"	"skin"	"Clinical"	"P04_skin"	2
+"P04_skin_1"	"P04_skin_1"	"P04"	"skin"	"Clinical"	"P04_skin"	2
+"P04_nose_2"	"P04_nose_2"	"P04"	"nose"	"Clinical"	"P04_nose"	156
+"P04_nose_1"	"P04_nose_1"	"P04"	"nose"	"Clinical"	"P04_nose"	156
+"P05_skin_2"	"P05_skin_2"	"P05"	"skin"	"Clinical"	"P05_skin"	6
+"P05_skin_1"	"P05_skin_1"	"P05"	"skin"	"Clinical"	"P05_skin"	6
+"P05_nose_2"	"P05_nose_2"	"P05"	"nose"	"Clinical"	"P05_nose"	31
+"P05_nose_1"	"P05_nose_1"	"P05"	"nose"	"Clinical"	"P05_nose"	31
+"P06_skin_2"	"P06_skin_2"	"P06"	"skin"	"Clinical"	"P06_skin"	5
+"P06_skin_1"	"P06_skin_1"	"P06"	"skin"	"Clinical"	"P06_skin"	5
+"P06_nose_2"	"P06_nose_2"	"P06"	"nose"	"Clinical"	"P06_nose"	680
+"P06_nose_1"	"P06_nose_1"	"P06"	"nose"	"Clinical"	"P06_nose"	680
+"P07_skin_2"	"P07_skin_2"	"P07"	"skin"	"Clinical"	"P07_skin"	893
+"P07_skin_1"	"P07_skin_1"	"P07"	"skin"	"Clinical"	"P07_skin"	893
+"P07_nose_2"	"P07_nose_2"	"P07"	"nose"	"Clinical"	"P07_nose"	86
+"P07_nose_1"	"P07_nose_1"	"P07"	"nose"	"Clinical"	"P07_nose"	86
+"Extraction_control_2"	"Extraction_control_2"	"Extraction"	"Negative control"	"Negative control"	"Extraction_Negative control"	NA
+"Extraction_control_1"	"Extraction_control_1"	"Extraction"	"Negative control"	"Negative control"	"Extraction_Negative control"	NA
+"P08_skin_2"	"P08_skin_2"	"P08"	"skin"	"Clinical"	"P08_skin"	6
+"P08_skin_1"	"P08_skin_1"	"P08"	"skin"	"Clinical"	"P08_skin"	6
+"P08_nose_2"	"P08_nose_2"	"P08"	"nose"	"Clinical"	"P08_nose"	254
+"P08_nose_1"	"P08_nose_1"	"P08"	"nose"	"Clinical"	"P08_nose"	254
+"P09_skin_2"	"P09_skin_2"	"P09"	"skin"	"Clinical"	"P09_skin"	NA
+"P09_skin_1"	"P09_skin_1"	"P09"	"skin"	"Clinical"	"P09_skin"	NA
+"P09_nose_2"	"P09_nose_2"	"P09"	"nose"	"Clinical"	"P09_nose"	3
+"P09_nose_1"	"P09_nose_1"	"P09"	"nose"	"Clinical"	"P09_nose"	3
+"Staggered_mock_2"	"Staggered_mock_2"	"Staggered"	"Staggered mock"	"Mock community"	"Staggered_Staggered mock"	NA
+"Staggered_mock_1"	"Staggered_mock_1"	"Staggered"	"Staggered mock"	"Mock community"	"Staggered_Staggered mock"	NA
+"P10_nose_2"	"P10_nose_2"	"P10"	"nose"	"Clinical"	"P10_nose"	962
+"P10_nose_1"	"P10_nose_1"	"P10"	"nose"	"Clinical"	"P10_nose"	962
+"P10_skin_1"	"P10_skin_1"	"P10"	"skin"	"Clinical"	"P10_skin"	10
+"P10_skin_2"	"P10_skin_2"	"P10"	"skin"	"Clinical"	"P10_skin"	10
+"P11_skin_2"	"P11_skin_2"	"P11"	"skin"	"Clinical"	"P11_skin"	2
+"P11_skin_1"	"P11_skin_1"	"P11"	"skin"	"Clinical"	"P11_skin"	2
+"P11_nose_2"	"P11_nose_2"	"P11"	"nose"	"Clinical"	"P11_nose"	7
+"P11_nose_1"	"P11_nose_1"	"P11"	"nose"	"Clinical"	"P11_nose"	7
+"even.mock3.1_S258_L001"	"even.mock3.1_S258_L001"	"Even"	"Even mock"	"Mock community"	"Even_Even mock"	NA
+"even.mock3.2_S282_L001"	"even.mock3.2_S282_L001"	"Even"	"Even mock"	"Mock community"	"Even_Even mock"	NA
+"even.mock3.3_S199_L001"	"even.mock3.3_S199_L001"	"Even"	"Even mock"	"Mock community"	"Even_Even mock"	NA
+"staggered.mock3.1_S270_L001"	"staggered.mock3.1_S270_L001"	"Staggered"	"Staggered mock"	"Mock community"	"Staggered_Staggered mock"	NA
+"staggered.mock3.2_S211_L001"	"staggered.mock3.2_S211_L001"	"Staggered"	"Staggered mock"	"Mock community"	"Staggered_Staggered mock"	NA
+"staggered.mock3.3_S223_L001"	"staggered.mock3.3_S223_L001"	"Staggered"	"Staggered mock"	"Mock community"	"Staggered_Staggered mock"	NA

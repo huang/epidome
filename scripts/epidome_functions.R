@@ -57,14 +57,17 @@ compare_primer_output <- function(epidome_object, color_variable = "") {
   p1_counts = colSums(epidome_object$p1_table)
   p2_counts = colSums(epidome_object$p2_table)
   cor = cor.test(p1_counts,p2_counts)
+  return_df = data.frame(p1_counts,p2_counts,epidome_object$metadata)
   if (color_variable=="") {
-    p =ggplot(data.frame(p1_counts,p2_counts),aes(x=p1_counts,y=p2_counts)) + geom_point() + ggtitle(paste0("Pearson correlation coefficient: ",sprintf(cor$estimate, fmt = '%#.2f'),", p = ",sprintf(cor$p.value, fmt = '%#.3f')))
+    p =ggplot(data.frame(p1_counts,p2_counts),aes(x=p1_counts,y=p2_counts)) + geom_point() + ggtitle(paste0("Pearson correlation coefficient: ",sprintf(cor$estimate, fmt = '%#.2f'),", p = ",sprintf(cor$p.value, fmt = '%#.3f'))) +
+      theme_bw() + xlab("g216 read count") + ylab("yycH read count")
   } else {
-    p =ggplot(data.frame(p1_counts,p2_counts),aes(x=p1_counts,y=p2_counts,color = get_metadata(epidome_object,color_variable))) + geom_point() + ggtitle(paste0("Pearson correlation coefficient: ",sprintf(cor$estimate, fmt = '%#.2f'),", p = ",sprintf(cor$p.value, fmt = '%#.3f'))) + labs(color = color_variable)
+    p =ggplot(data.frame(p1_counts,p2_counts),aes(x=p1_counts,y=p2_counts,color = get_metadata(epidome_object,color_variable))) + geom_point() + ggtitle(paste0("Pearson correlation coefficient: ",sprintf(cor$estimate, fmt = '%#.2f'),", p = ",sprintf(cor$p.value, fmt = '%#.3f'))) + labs(color = color_variable) +
+      theme_bw() + xlab("g216 read count") + ylab("yycH read count")
   }
   
   p
-  return(list('plot'=p,'cor_test'=cor))
+  return(list('plot'=p,'cor_test'=cor,'df'=return_df))
 }
 
 
@@ -277,7 +280,7 @@ make_barplot_epidome = function(count_table, reorder = FALSE, normalize = TRUE) 
     melt_df$Sample = factor(as.vector(melt_df$Sample), levels = fit$labels[fit$order])
   }
   melt_df$ST = factor(as.vector(melt_df$ST),levels = ST_levels_ordered)
-  p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = RColorBrewer::brewer.pal(12,"Paired")) + theme(axis.text.x = element_text(angle = 90,hjust = 0.95)) + ylab(ylabel) + theme_bw()
+  p = ggplot() + geom_bar(aes(y = Count, x = Sample, fill = ST), data = melt_df, stat="identity") + scale_fill_manual(values = RColorBrewer::brewer.pal(12,"Paired")) + theme(axis.text.x = element_text(angle = 90,hjust = 0.95)) + ylab(ylabel) + theme_classic()
   return(p)
 }
 
@@ -295,6 +298,61 @@ setup_colors = function(factor_levels,colors) {
   return(colors)
 }
 
+summarize_reads_epidome <- function(epidome_object,color_variable,p1_threshold=0,p2_threshold=0,colors) {
+  m = epidome_object$metadata
+  var_factor = m[,which(epidome_object$meta_variables==color_variable)]
+  p1_read_sums = colSums(epidome_object$p1_table)
+  p2_read_sums = colSums(epidome_object$p2_table)
+  color_vector = setup_colors(levels(var_factor),colors)
+  if (!class(var_factor) == "factor") {
+    var_levels = as.vector(unique(var_factor))
+  } else {
+    var_levels = levels(var_factor)
+  }
+#  plot_df = data.frame("Group"=var_factor,"Read.count"=read_sums)
+#  p = ggplot(plot_df,aes(x=Group,y=Read.count,fill=Group)) + geom_boxplot() + geom_jitter(width = 0.2) + ggtitle("Read count distribution") + theme_bw() + xlab(element_blank()) + ylab("Read count") + 
+#    theme(legend.position = "none", axis.text.x = element_text(size=14), axis.title.y = element_text(size=14), plot.title = element_text(size=16)) + scale_fill_manual(values = col_vec)
+  p1_mat = matrix(ncol=(length(var_levels)+1),nrow=7,dimnames = list(c("Number of samples","Samples included","Samples excluded","Median","SD","Minimum","Maximum"),c("Total",var_levels)))
+  p2_mat = matrix(ncol=(length(var_levels)+1),nrow=7,dimnames = list(c("Number of samples","Samples included","Samples excluded","Median","SD","Minimum","Maximum"),c("Total",var_levels)))
+#  rownames(return_mat) = c("Number of samples","Samples included","Samples excluded","Median","SD","Minimum","Maximum")
+#  colnames(return_mat) = c("Total",var_levels)
+  vec = c(length(p1_read_sums),length(which(p1_read_sums>=p1_threshold & p2_read_sums>=p2_threshold)),length(which(p1_read_sums<p1_threshold | p2_read_sums<p2_threshold)),
+          median(p1_read_sums),sd(p1_read_sums),min(p1_read_sums),max(p1_read_sums))
+  p1_mat[,1] = vec
+  vec = c(length(p2_read_sums),length(which(p1_read_sums>=p1_threshold & p2_read_sums>=p2_threshold)),length(which(p1_read_sums<p1_threshold | p2_read_sums<p2_threshold)),
+          median(p2_read_sums),sd(p2_read_sums),min(p2_read_sums),max(p2_read_sums))
+  p2_mat[,1] = vec
+  p1_compare_mat = matrix(nrow=length(var_levels),ncol=length(var_levels),dimnames = list(var_levels,var_levels))
+  p2_compare_mat = matrix(nrow=length(var_levels),ncol=length(var_levels),dimnames = list(var_levels,var_levels))
+  for (i in 1:length(var_levels)) {
+    var_value = var_levels[i]
+    p1_read_sums_1 = p1_read_sums[which(var_factor==var_value)]
+    p2_read_sums_1 = p2_read_sums[which(var_factor==var_value)]
+    vec = c(length(p1_read_sums_1),length(which(p1_read_sums_1>=p1_threshold & p2_read_sums_2>=p2_threshold)),length(which(p1_read_sums_1<p1_threshold | p2_read_sums_2<p2_threshold)),
+            median(p1_read_sums_1),sd(p1_read_sums_1),min(p1_read_sums_1),max(p1_read_sums_1))
+    p1_mat[,(i+1)] = vec
+    vec = c(length(p2_read_sums_1),length(which(p1_read_sums_1>=p1_threshold & p2_read_sums_1>=p2_threshold)),length(which(p1_read_sums_1<p1_threshold | p2_read_sums_1<p2_threshold)),
+            median(p2_read_sums_1),sd(p2_read_sums_1),min(p2_read_sums_1),max(p2_read_sums_1))
+    p2_mat[,(i+1)] = vec
+    for (j in i:length(var_levels)) {
+      print(paste0(i,' ',j))
+      p1_read_sums_2 = p1_read_sums[which(var_factor==var_levels[j])]
+      print(p1_read_sums)
+      print(p1_read_sums_2)
+      wtest = wilcox.test(p1_read_sums,p1_read_sums_2)
+      p1_compare_mat[i,j] = wtest$p.value
+      p1_compare_mat[j,i] = wtest$p.value
+      p2_read_sums_2 = p2_read_sums[which(var_factor==var_levels[j])]
+      wtest = wilcox.test(p2_read_sums,p2_read_sums_2)
+      p2_compare_mat[i,j] = wtest$p.value
+      p2_compare_mat[j,i] = wtest$p.value
+    }
+  }
+  return_df = as.data.frame(return_mat)
+  return(list("Summary"=return_df,"p.values"=compare_mat))
+}
+
+
 plot_PCA_epidome = function(epidome_object,color_variable,colors,plot_ellipse = TRUE) {
   m = epidome_object$metadata
   color_variable_factor = m[,which(epidome_object$meta_variables==color_variable)]
@@ -304,7 +362,7 @@ plot_PCA_epidome = function(epidome_object,color_variable,colors,plot_ellipse = 
   color_vector = setup_colors(levels(color_variable_factor),colors)
   labels = c(paste0("PC1 [",sprintf("%.1f",explvar(pca)[1]),"%]"),paste0("PC2, [",sprintf("%.1f",explvar(pca)[2]),"%]"))
   if (plot_ellipse) {
-    p = ggplot(as.data.frame(pca$x),aes(x=PC1,y=PC2,color = color_variable_factor)) + labs(color = color_variable) + geom_point(size=1.5, alpha=1)+ stat_ellipse(level=0.75) + scale_colour_manual(values = color_vector) + xlab(labels[1]) + ylab(labels[2]) + theme_bw()
+    p = ggplot(as.data.frame(pca$x),aes(x=PC1,y=PC2,color = color_variable_factor)) + labs(color = color_variable) + geom_point(size=1.5, alpha=1) + stat_ellipse(level=0.75) + scale_colour_manual(values = color_vector) + xlab(labels[1]) + ylab(labels[2]) + theme_bw()
   } else {
     p = ggplot(as.data.frame(pca$x),aes(x=PC1,y=PC2,color = color_variable_factor)) + labs(color = color_variable) + geom_point(size=1.5, alpha=1) + scale_colour_manual(values = color_vector) + xlab(labels[1]) + ylab(labels[2]) + theme_bw()
   }
