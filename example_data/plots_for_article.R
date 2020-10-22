@@ -88,7 +88,9 @@ color_table = rbind(color_table,data.frame(c()))
 mock_STs = c(2,5,14,87,215,218,"Unclassified")
 count_mock_fixed = rbind(count_table_mock[rownames(count_table_mock) %in% mock_STs,],colSums(count_table_mock[!rownames(count_table_mock) %in% mock_STs,]))
 rownames(count_mock_fixed)[nrow(count_mock_fixed)] = "Other"
-
+count_mock_fixed$even.mock.theoretical = c(1,1,1,1,1,1,0,0)
+count_mock_fixed$staggered.mock.theoretical = c(100,100,1000,1000,10000,10000,0,0)
+count_mock_fixed = count_mock_fixed[,c(1:3,7,4:6,8)]
 
 dd<-apply(count_mock_fixed, 2, function(x) x/sum(x)*100)
 count_mock_fixed<-as.data.frame(dd)
